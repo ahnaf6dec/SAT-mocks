@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SAT® Digital Test Workspace</title>
+    <title>SAT® Digital Prep Hub</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     
@@ -11,770 +11,382 @@
         :root {
             --pure-black: #000000;
             --off-black: #111111;
-            --dark-gray: #333333;
-            --light-border: #e5e5e5;
-            --active-bg: #f8fafc;
+            --slate-dark: #1e293b;
+            --charcoal: #334155;
+            --cool-gray: #64748b;
+            --light-border: #e2e8f0;
+            --bg-canvas: #f8fafc;
             --pure-white: #ffffff;
+            
+            /* Premium Accent Map */
+            --accent-primary: #0f172a;
+            --accent-purple: #581c87;
+            --accent-rose: #9f1239;
         }
 
-        /* --- Global Reset & Adaptive Viewport Control --- */
-        html, body {
-            height: 100%;
-            margin: 0;
-            padding: 0;
-            background-color: var(--pure-white);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            color: var(--pure-black);
+        body {
+            background-color: var(--bg-canvas);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            color: var(--accent-primary);
+            padding-bottom: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
             -webkit-font-smoothing: antialiased;
         }
 
-        /* Standard body flow default for Home Page */
-        body {
-            overflow-y: auto; 
-            overflow-x: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* ACTIVE EXAM RUNTIME OVERRIDES: Locks layout to prevent general window scrollbars */
-        body.quiz-active {
-            overflow: hidden !important;
-        }
-
-        /* --- Premium High-Contrast Header UI --- */
-        .bb-header {
+        /* --- Premium High-Contrast Obsidian Header --- */
+        .header-banner {
             background-color: var(--pure-black);
             color: var(--pure-white);
-            padding: 14px 24px;
-            flex-shrink: 0;
+            padding: 36px 20px;
             border-bottom: 2px solid var(--pure-black);
         }
-        .bb-module-title {
-            font-size: 0.8rem;
-            font-weight: 800;
-            letter-spacing: 0.1em;
-            color: #a3a3a3;
+        .header-banner .badge {
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
             text-transform: uppercase;
+            background-color: #222222 !important;
+            color: #e2e8f0;
+            border: 1px solid #333333;
         }
-        .bb-live-clock-panel {
+        .header-banner h1 {
+            font-size: 1.75rem;
+            letter-spacing: -0.02em;
+        }
+        .text-muted-light {
+            color: #94a3b8;
             font-size: 0.95rem;
-            color: var(--pure-white);
-            font-weight: 600;
-            letter-spacing: -0.01em;
-            margin-top: 2px;
-        }
-        .bb-timer-container {
-            background-color: var(--off-black);
-            border-radius: 6px;
-            padding: 6px 14px;
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 1.25rem;
-            font-weight: 800;
-            border: 2px solid #444444;
-            color: var(--pure-white);
-            letter-spacing: 1px;
-        }
-        .bb-tool-btn {
-            background: var(--pure-white);
-            border: 2px solid var(--pure-black);
-            color: var(--pure-black);
-            padding: 8px 16px;
-            font-size: 0.9rem;
-            border-radius: 6px;
-            font-weight: 700;
-            transition: all 0.15s ease-in-out;
-        }
-        .bb-tool-btn:hover {
-            background-color: var(--pure-black);
-            color: var(--pure-white);
-        }
-        .bb-tool-btn.flagged-active {
-            background-color: var(--pure-black);
-            color: var(--pure-white);
-            border-color: var(--pure-black);
         }
 
-        /* --- Main Workspace Layout Container --- */
-        .workspace-container {
-            display: flex;
-            flex-direction: column;
-            flex-grow: 1;
+        /* --- Premium Info & Interactive Cards --- */
+        .info-card {
             background-color: var(--pure-white);
-            min-height: 0; /* Critical CSS container budget layout fix */
+            border: 2px solid var(--pure-black);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.02);
         }
-
-        /* Home Page Container Setup (Natural Page Scrollable Flow) */
-        #instructionsCard {
-            width: 100%;
-            padding: 40px 20px;
-            margin-bottom: 40px;
-        }
-
-        /* Split Panels Workspace Mode for Quiz Arena */
-        @media (min-width: 992px) {
-            body.quiz-active .workspace-container {
-                flex-direction: row;
-                height: calc(100vh - 74px - 70px); /* Strict screen dimension minus header/footer heights */
-                overflow: hidden;
-            }
-            body.quiz-active .left-panel {
-                width: 50%;
-                height: 100%;
-                overflow-y: auto;
-                border-right: 2px solid var(--pure-black);
-                background-color: var(--pure-white);
-            }
-            body.quiz-active .right-panel {
-                width: 50%;
-                height: 100%;
-                overflow-y: auto;
-                background-color: var(--pure-white);
-            }
-        }
-        @media (max-width: 991.98px) {
-            body.quiz-active {
-                overflow-y: auto !important; /* Fallback for small viewports */
-            }
-            body.quiz-active .workspace-container {
-                height: auto;
-            }
-            body.quiz-active .left-panel, 
-            body.quiz-active .right-panel {
-                width: 100%;
-                height: auto;
-                overflow-y: visible;
-            }
-            body.quiz-active .left-panel {
-                border-bottom: 2px solid var(--pure-black);
-            }
-        }
-
-        /* --- Bookmarked Interactivity States --- */
-        .workspace-container.is-bookmarked .left-panel,
-        .workspace-container.is-bookmarked .right-panel {
-            background-color: #fafafa;
-        }
-        .bookmark-status-banner {
-            display: none;
-            background: var(--pure-black);
-            color: var(--pure-white);
-            font-weight: 700;
-            font-size: 0.8rem;
-            letter-spacing: 0.05em;
-            padding: 4px 10px;
-            border-radius: 4px;
-            text-transform: uppercase;
-        }
-        .workspace-container.is-bookmarked .bookmark-status-banner {
-            display: inline-block;
-        }
-
-        /* --- Typography Settings --- */
-        .sat-passage {
-            font-family: Georgia, "Times New Roman", serif;
-            font-size: 1.25rem;
-            line-height: 1.85;
-            color: var(--off-black);
-            padding-right: 5px;
-        }
-        .question-text {
-            font-size: 1.3rem;
-            font-weight: 700;
-            line-height: 1.55;
-            color: var(--pure-black);
-            letter-spacing: -0.01em;
-        }
-
-        /* --- Custom Multiple Choice Components --- */
-        .option-wrapper {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 12px;
-            width: 100%;
-        }
-        .bb-option-card {
-            flex-grow: 1;
+        .day-card {
             background-color: var(--pure-white);
             border: 2px solid var(--light-border);
             border-radius: 8px;
-            padding: 14px 20px;
-            cursor: pointer;
+            transition: all 0.15s ease-in-out;
+            text-decoration: none;
+            color: var(--accent-primary);
+            min-height: 85px;
             display: flex;
             align-items: center;
-            transition: all 0.15s ease;
+            justify-content: space-between;
+            padding: 16px 20px;
         }
-        .bb-option-card:hover {
-            background-color: var(--active-bg);
-            border-color: var(--dark-gray);
-        }
-        .bb-option-card.selected {
-            border-color: var(--pure-black) !important;
-            background-color: var(--pure-black) !important;
-            color: var(--pure-white) !important;
-        }
-        .bb-option-card.selected .letter-badge {
-            background-color: var(--pure-white);
-            color: var(--pure-black);
-            border-color: var(--pure-white);
-        }
-        .letter-badge {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 30px;
-            height: 30px;
-            border: 2px solid var(--pure-black);
-            border-radius: 50%;
-            margin-right: 14px;
-            font-weight: 800;
-            font-size: 0.95rem;
-            background-color: var(--pure-white);
-            color: var(--pure-black);
-            flex-shrink: 0;
-        }
-        .option-text-span {
-            font-size: 1.1rem;
-            font-weight: 600;
-        }
-        .bb-option-card.struck {
-            text-decoration: line-through;
-            opacity: 0.25;
-            background-color: var(--pure-white) !important;
-            border-color: var(--light-border) !important;
-            pointer-events: none;
-        }
-        .bb-strike-btn {
-            background: none;
-            border: 2px dashed var(--light-border);
-            color: var(--dark-gray);
-            width: 42px;
-            height: 42px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            flex-shrink: 0;
-            transition: all 0.15s;
-            font-size: 1.15rem;
-        }
-        .bb-strike-btn:hover, .bb-strike-btn.active {
-            border-style: solid;
+        .day-card:hover, .day-card:active {
+            background-color: var(--bg-canvas);
             border-color: var(--pure-black);
-            color: var(--pure-white);
-            background-color: var(--pure-black);
+            color: var(--pure-black);
+        }
+        
+        /* Paused States */
+        .day-card.paused-card {
+            background-color: var(--pure-white);
+            border: 2px dashed var(--light-border);
+            opacity: 0.55;
+            cursor: not-allowed;
+        }
+        .day-card.paused-card:hover {
+            border-color: var(--light-border);
+            color: var(--accent-primary);
+            background-color: var(--pure-white);
         }
 
-        /* --- Pinned Bottom Sticky Footer Navigation --- */
+        /* --- Minimalist Clean Navigation Tab Overrides --- */
+        .nav-pills .nav-link {
+            color: var(--charcoal);
+            font-weight: 700;
+            font-size: 0.9rem;
+            border: 2px solid var(--light-border);
+            margin-right: 8px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            padding: 10px 18px;
+            transition: all 0.15s ease;
+            background-color: var(--pure-white);
+        }
+        .nav-pills .nav-link.active {
+            background-color: var(--pure-black);
+            border-color: var(--pure-black);
+            color: var(--pure-white);
+        }
+        .nav-pills .nav-link:hover:not(.active) {
+            background-color: var(--bg-canvas);
+            border-color: var(--charcoal);
+            color: var(--pure-black);
+        }
+
+        /* --- Balanced Badges & Components --- */
+        .badge-biweekly {
+            background-color: var(--accent-purple);
+            color: var(--pure-white);
+            font-weight: 700;
+        }
+        .badge-mega {
+            background-color: var(--accent-rose);
+            color: var(--pure-white);
+            font-weight: 700;
+        }
+        .badge-daily {
+            background-color: var(--slate-dark);
+            color: var(--pure-white);
+            font-weight: 700;
+        }
+        
+        /* --- Premium Clean Pagination Architecture --- */
+        .pagination .page-link {
+            color: var(--pure-black);
+            border: 2px solid var(--light-border);
+            padding: 10px 16px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            border-radius: 6px;
+            transition: all 0.15s ease;
+        }
+        .pagination .page-item.active .page-link {
+            background-color: var(--pure-black);
+            border-color: var(--pure-black);
+            color: var(--pure-white);
+        }
+        .pagination .page-link:hover:not(.active) {
+            background-color: var(--bg-canvas);
+            border-color: var(--pure-black);
+            color: var(--pure-black);
+        }
+
+        /* --- Sticky/Fixed Footer Real Estate --- */
         .bb-footer {
             background-color: var(--pure-white);
             border-top: 2px solid var(--pure-black);
-            padding: 14px 24px;
-            flex-shrink: 0;
-            height: 70px;
-            z-index: 1020;
-        }
-        .question-nav-trigger {
-            background-color: var(--pure-black);
-            color: var(--pure-white);
-            border: none;
-            border-radius: 6px;
-            padding: 8px 24px;
-            font-size: 0.95rem;
-            font-weight: 700;
-            letter-spacing: 0.02em;
-        }
-        .btn-navigation {
-            border: 2px solid var(--pure-black);
-            background: var(--pure-white);
-            color: var(--pure-black);
-            font-weight: 700;
-            font-size: 0.95rem;
-            padding: 8px 20px;
-            border-radius: 6px;
-            transition: all 0.15s;
-        }
-        .btn-navigation:hover:not(:disabled) {
-            background-color: var(--pure-black);
-            color: var(--pure-white);
-        }
-
-        /* --- Review Map Popover Map Layout --- */
-        .grid-popover {
-            width: 320px;
-            padding: 18px;
-            max-height: 350px;
-            overflow-y: auto;
-        }
-        .map-grid-item {
-            width: 40px;
-            height: 40px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border: 2px solid var(--pure-black);
-            border-radius: 6px;
-            font-size: 0.95rem;
-            font-weight: 700;
-            cursor: pointer;
-            text-decoration: none;
-            color: var(--pure-black);
-            background-color: var(--pure-white);
-            position: relative;
-        }
-        .map-grid-item.active {
-            background-color: var(--active-bg);
-            box-shadow: 0 0 0 3px var(--pure-black);
-        }
-        .map-grid-item.answered {
-            background-color: var(--pure-black);
-            color: var(--pure-white);
-        }
-        .map-grid-item .flag-indicator {
-            position: absolute;
-            top: -6px;
-            right: -6px;
-            font-size: 0.8rem;
-            color: var(--pure-black);
-            background: var(--pure-white);
-            border-radius: 50%;
+            color: var(--cool-gray);
+            font-size: 0.85rem;
+            padding: 20px 0;
+            margin-top: auto; /* Pushes footer to absolute bottom safely */
         }
     </style>
 </head>
 <body>
 
-    <header class="bb-header d-flex flex-column flex-sm-row justify-content-sm-between align-items-start align-items-sm-center gap-3 shadow-sm">
-        <div>
-            <div class="bb-module-title">DIGITAL SAT TESTING ENGINE</div>
-            <div class="bb-live-clock-panel" id="liveHeaderTimestamp">
-                Locating real-time workspace environments...
-            </div>
-        </div>
-        
-        <div class="d-flex align-items-center justify-content-between w-100 w-sm-auto gap-3">
-            <div class="d-flex gap-2" id="topbarTools">
-                <button class="bb-tool-btn d-none" id="toolFlag" onclick="triggerFlag()">
-                    <i class="bi bi-bookmark me-1"></i> Bookmark
-                </button>
-            </div>
-            <div class="d-flex align-items-center gap-2 d-none" id="topbarStats">
-                <span class="bb-timer-container" id="timer">15:00</span>
+    <header class="header-banner text-center">
+        <div class="container">
+            <span class="badge mb-2">Practice Vocab</span>
+            <h1 class="fw-bold mb-1">SAT® Digital Vocabulary Portal</h1>
+            <p class="lead text-muted-light mb-3">Professional Testing Matrix for Long-Term Lexicon Retention</p>
+            <div class="d-inline-flex align-items-center gap-2 bg-white bg-opacity-10 px-3 py-1.5 rounded-pill border border-white border-opacity-10" style="font-size: 0.8rem; color: #cbd5e1;">
+                <i class="bi bi-info-circle text-light"></i>
+                <span>I am a learner too. All questions are generated by AI calibrated to standard SAT specifications.</span>
             </div>
         </div>
     </header>
 
-    <div class="workspace-container" id="workspaceContainer">
-        
-        <div id="instructionsCard">
-            <div class="row justify-content-center mx-0 mt-2">
-                <div class="col-12 col-xl-7">
-                    <div class="card border-2 border-dark shadow-sm p-4 p-md-5 bg-white rounded-3">
-                        <div class="text-center mb-4">
-                            <i class="bi bi-shield-check text-dark" style="font-size: 3rem;"></i>
-                            <h3 class="fw-bold mt-2">Vocabulary Practice Setup</h3>
-                            <p class="text-muted small fw-bold tracking-wide">BLUEBOOK PROTOCOL ENGINE MODULE ALIGNMENT</p>
-                        </div>
-                        
-                        <div class="border border-2 border-dark p-4 rounded mb-4">
-                            <div class="d-flex gap-3">
-                                <i class="bi bi-info-circle-fill fs-4 text-dark"></i>
-                                <div class="small">
-                                    <strong class="d-block text-dark fs-6 mb-1">Context Isolation Protocol</strong>
-                                    <span class="text-secondary d-block mt-1">All platform questions are synthetically generated to optimize high-volume adaptive retrieval.</span>
-                                </div>
-                            </div>
-                        </div>
+    <main class="container my-4 px-3 flex-grow-1">
+        <section class="row justify-content-center mb-4">
+            <div class="col-12 col-xl-10">
+                <div class="card info-card p-4">
+                    <h5 class="fw-bold mb-3 text-dark d-flex align-items-center gap-2">
+                        <i class="bi bi-shield-check text-dark fs-5"></i>
+                        <span>Mission &amp; Implementation Objectives</span>
+                    </h5>
+                    
+                    <p class="text-secondary small mb-3">
+                        This specialized platform isolates vocabulary skills within contextual reading frames. By focusing entirely on lexical structure, contextual dependencies, and logical syntax elimination, the system ensures readers learn to decode sentence parameters rather than simply relying on rote definition matching.
+                    </p>
+                    
+                    <div class="bg-light border p-2.5 px-3 rounded mb-4 d-flex align-items-center gap-2" style="font-size: 0.825rem;">
+                        <i class="bi bi-exclamation-triangle-fill text-dark"></i>
+                        <span class="text-dark fw-bold">Structural Rule: Standard Daily Practices are dynamically paused on Day 15 and Day 30 to allow exclusively for mandatory assessment reviews.</span>
+                    </div>
 
-                        <div class="bg-light p-4 rounded border border-2 mb-4">
-                            <h6 class="fw-bold text-dark mb-2"><i class="bi bi-journal-text me-2"></i>Required Core Lexicon Document</h6>
-                            <p class="text-secondary small mb-3">Ensure you complete a formal review of the assigned ledger structures before beginning the countdown sequence matrix:</p>
-                            <a href="https://docs.google.com/document/d/1QgrWrF1drCupM0f-rYdpb82Orxr929NvWneuMcPMZ4A/edit?tab=t.0" target="_blank" class="btn btn-sm btn-dark fw-bold px-4 py-2.5">
-                                <i class="bi bi-box-arrow-up-right me-2"></i> Open Today's Vocab Sheet Document
-                            </a>
+                    <div class="row g-3 border-top pt-3">
+                        <div class="col-12 col-md-4">
+                            <h6 class="fw-bold text-dark mb-1 small"><i class="bi bi-calendar3 me-2"></i>Daily Matrices</h6>
+                            <p class="text-muted small mb-0">Daily targeted micro-assessments featuring 18 rapid-fire, randomized contextual inquiries. Completed within 15 minutes to sharpen immediate retrieval mechanics.</p>
                         </div>
-
-                        <div class="text-secondary mb-4 small">
-                            <h6 class="fw-bold text-dark mb-2"><i class="bi bi-gear-fill me-2"></i>Testing Parameters:</h6>
-                            <ul class="ps-3 mt-2">
-                                <li class="mb-1"><strong>Volume:</strong> 18 contextual reading matrix tasks.</li>
-                                <li class="mb-1"><strong>Timeline:</strong> 15 minutes absolute countdown constraint.</li>
-                                <li class="mb-1"><strong>Controls:</strong> Select choices to register responses. Toggle <i class="bi bi-bookmark"></i> to flag questions instantly.</li>
-                            </ul>
+                        <div class="col-12 col-md-4 border-start-md">
+                            <h6 class="fw-bold text-dark mb-1 small"><i class="bi bi-calendar-range me-2"></i>Biweekly Milestone Reviews</h6>
+                            <p class="text-muted small mb-0">Held on the <strong>15th and 30th days</strong> of the schedule. Features an intensive pool of <strong>50 questions</strong> structured across a rigid <strong>48-minute timeline</strong>.</p>
                         </div>
-
-                        <div class="text-center pt-2">
-                            <button class="btn btn-dark btn-lg w-100 py-3 fw-bold fs-6 shadow-sm" onclick="startTest()">
-                                Start Practice Test Session <i class="bi bi-arrow-right-short ms-1"></i>
-                            </button>
+                        <div class="col-12 col-md-4 border-start-md">
+                            <h6 class="fw-bold text-dark mb-1 small"><i class="bi bi-trophy me-2"></i>Monthly Mega Simulations</h6>
+                            <p class="text-muted small mb-0">Administered concurrently at the 30-day benchmark window. A high-tier, complete core validation review encompassing <strong>100 vocabulary questions within 96 minutes</strong>.</p>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <main id="quiz" class="d-none w-100 h-100 d-flex flex-column flex-lg-row">
-            </main>
-        
-    </div>
+        <section class="row justify-content-center">
+            <div class="col-12 col-xl-10">
+                
+                <h5 class="fw-bold text-dark mb-3">Select Practice Syllabus Track</h5>
+                
+                <ul class="nav nav-pills mb-4 flex-column flex-sm-row" id="testTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active w-100 text-start text-sm-center" id="daily-tab" data-bs-toggle="pill" type="button" onclick="switchTrack('daily')">
+                            <i class="bi bi-list-check me-2"></i>Daily Tests (1-30)
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link w-100 text-start text-sm-center" id="biweekly-tab" data-bs-toggle="pill" type="button" onclick="switchTrack('biweekly')">
+                            <i class="bi bi-clock-history me-2"></i>Biweekly Milestone Review
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link w-100 text-start text-sm-center" id="mega-tab" data-bs-toggle="pill" type="button" onclick="switchTrack('mega')">
+                            <i class="bi bi-award-fill me-2"></i>Mega Monthly Simulation
+                        </button>
+                    </li>
+                </ul>
 
-    <footer class="bb-footer d-none" id="quizFooter">
-        <div class="container-fluid h-100 d-flex justify-content-between align-items-center">
-            
-            <button class="btn-navigation" id="prevBtn" onclick="prevQ()">
-                <i class="bi bi-chevron-left me-1"></i> Back
-            </button>
-            
-            <div class="dropup">
-                <button class="question-nav-trigger d-flex align-items-center gap-2" type="button" id="gridMapDropdown" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
-                    <span id="footerProgress" class="fw-bold">Question 1 of 18</span>
-                    <i class="bi bi-chevron-up"></i>
-                </button>
-                <div class="dropdown-menu dropdown-menu-end shadow-lg border border-2 border-dark p-0 rounded-3" aria-labelledby="gridMapDropdown">
-                    <div class="grid-popover">
-                        <h6 class="fw-bold mb-3 text-muted border-bottom pb-2 tracking-wide uppercase small">Review Assessment Map</h6>
-                        <div class="d-flex flex-wrap gap-2" id="navGridMapContainer">
-                            </div>
-                        <div class="border-top mt-4 pt-3 text-center">
-                            <button class="btn btn-dark w-100 fw-bold py-2.5" onclick="finishQuiz()">
-                                <i class="bi bi-check2-circle me-1"></i> Submit Section
-                            </button>
-                        </div>
+                <div id="daysGrid" class="row g-3 mb-4">
                     </div>
-                </div>
-            </div>
 
-            <button class="btn-navigation" id="nextBtn" onclick="nextQ()">
-                Next <i class="bi bi-chevron-right ms-1"></i>
-            </button>
-            
+                <nav id="paginationWrapper" aria-label="Syllabus track page navigation">
+                    <ul class="pagination justify-content-center gap-1" id="paginationControls">
+                        </ul>
+                </nav>
+                
+            </div>
+        </section>
+    </main>
+
+    <footer class="bb-footer text-center">
+        <div class="container">
+            &copy; 2026 Digital SAT Practice Hub &bull; Mobile &amp; Tablet Adaptive Architecture
         </div>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-// --- CORE REPOSITORY STORAGE LAYER ---
-const masterQuestionBank = {
-    abdicate: [
-        {
-            passage: "In 1848, the sudden abdication of King Louis Philippe of France sent shockwaves through European monarchies. Facing widespread public unrest and demands for democratic electoral reform, the king realized that his traditional authority could no longer hold back the swelling tide of revolution.",
-            q: "As used in the text, what does the word 'abdication' most nearly mean?",
-            options: ["The formal act of stepping down from a position of power.", "The military defense of a sovereign territory.", "The aggressive expansion of national borders.", "The strategic restructuring of parliamentary laws."],
-            answer: 0,
-            explanation: "'Abdication' means giving up office or authority. The passage highlights a king realizing his authority cannot hold, forcing him to surrender his position."
-        },
-        {
-            passage: "When the corporate scandal broke, the CEO chose to ______ her responsibilities rather than face the regulatory committee. Her sudden departure left the board of directors scrambling to find an interim replacement to stabilize the company's stock value.",
-            q: "Which choice completes the text with the most logical and precise word?",
-            options: ["abdicate", "champion", "augment", "reconcile"],
-            answer: 0,
-            explanation: "The CEO left her responsibilities rather than facing the committee, meaning she chose to 'abdicate' (relinquish or give up) her formal duties."
-        }
-    ],
-    abate: [
-        {
-            passage: "The structural integrity of the ancient Roman aqueduct remained uncompromised for centuries. However, recent seismic activity in the region has caused the subterranean foundations to slowly degrade, threatening the stability of the entire architectural marvel.",
-            q: "Which choice completes the text with the most logical and precise word?",
-            options: ["abase", "abate", "corroborate", "aggravate"],
-            answer: 1,
-            explanation: "'Abate' means to lessen or diminish. In this context, it describes the gradual reduction or lessening of structural stability."
-        }
-    ]
-};
+const totalDailyDays = 30; // Calibrated matrix track settings up to 30 elements
+const itemsPerPage = 6;    // Balanced item grid map layout limit ratio per page
+let currentTrack = 'daily';
+let currentPage = 1;
 
-// --- RUNTIME LIVE CYCLE ARRAYS ---
-let questions = []; 
-let current = 0;
-let userAnswers = [];
-let bookmarkedQuestions = [];
-let struckOptions = [];
-let totalTime = 900; 
-let countdownInterval;
-
-function initLiveClockClockPanel() {
-    function updateClockTime() {
-        const timestampElement = document.getElementById("liveHeaderTimestamp");
-        const now = new Date();
-        const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-        
-        const dateOptions = { year: 'numeric', month: 'short', day: 'numeric' };
-        const formattedDate = now.toLocaleDateString('en-US', dateOptions);
-        
-        let hours = now.getHours();
-        let minutes = now.getMinutes();
-        let seconds = now.getSeconds();
-        const ampm = hours >= 12 ? 'PM' : 'AM';
-        
-        hours = hours % 12;
-        hours = hours ? hours : 12;
-        minutes = minutes < 10 ? '0' + minutes : minutes;
-        seconds = seconds < 10 ? '0' + seconds : seconds;
-        
-        timestampElement.innerHTML = `<i class="bi bi-calendar3 me-2"></i> ${days[now.getDay()]}, ${formattedDate} &bull; ${hours}:${minutes}:${seconds} ${ampm}`;
-    }
-    updateClockTime();
-    setInterval(updateClockTime, 1000);
-}
-
-function shuffleArray(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-    }
-    return array;
-}
-
-function generateDynamicTestSession() {
-    let completePool = [];
-    for (const category in masterQuestionBank) {
-        masterQuestionBank[category].forEach(item => completePool.push({...item}));
-    }
-    shuffleArray(completePool);
-    while (completePool.length < 18) {
-        completePool = completePool.concat(JSON.parse(JSON.stringify(completePool)));
-    }
-    return completePool.slice(0, 18);
-}
-
-function startTest() {
-    questions = generateDynamicTestSession();
-    current = 0;
-    userAnswers = Array(questions.length).fill(null);
-    bookmarkedQuestions = Array(questions.length).fill(false);
-    struckOptions = Array(questions.length).fill(null).map(() => Array(4).fill(false));
-    totalTime = 900;
-
-    // Apply active exam modifier class to body to configure independent layout panels
-    document.body.classList.add("quiz-active");
-
-    document.getElementById("instructionsCard").classList.add("d-none");
-    document.getElementById("quiz").classList.remove("d-none");
-    document.getElementById("quizFooter").classList.remove("d-none");
-    document.getElementById("topbarStats").classList.remove("d-none");
-    document.getElementById("toolFlag").classList.remove("d-none");
-
-    clearInterval(countdownInterval);
-    initTimer();
-    loadQuestion();
-}
-
-function initTimer() {
-    const timerElement = document.getElementById("timer");
-    countdownInterval = setInterval(() => {
-        let minutes = Math.floor(totalTime / 60);
-        let seconds = totalTime % 60;
-        timerElement.innerText = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-        if (totalTime <= 0) {
-            clearInterval(countdownInterval);
-            finishQuiz();
-        }
-        totalTime--;
-    }, 1000);
-}
-
-function loadQuestion() {
-    let q = questions[current];
-    document.getElementById("footerProgress").innerText = `Question ${current + 1} of ${questions.length}`;
+function renderTrack() {
+    const grid = document.getElementById("daysGrid");
+    const paginationWrapper = document.getElementById("paginationWrapper");
+    grid.innerHTML = "";
     
-    const workspaceContainer = document.getElementById("workspaceContainer");
-    const flagBtn = document.getElementById("toolFlag");
-    
-    if(bookmarkedQuestions[current]) {
-        flagBtn.innerHTML = `<i class="bi bi-bookmark-fill me-1"></i> Bookmarked`;
-        flagBtn.className = "bb-tool-btn flagged-active";
-        workspaceContainer.classList.add("is-bookmarked");
-    } else {
-        flagBtn.innerHTML = `<i class="bi bi-bookmark me-1"></i> Bookmark`;
-        flagBtn.className = "bb-tool-btn";
-        workspaceContainer.classList.remove("is-bookmarked");
-    }
+    if (currentTrack === 'daily') {
+        paginationWrapper.classList.remove("d-none");
+        const start = (currentPage - 1) * itemsPerPage + 1;
+        const end = Math.min(start + itemsPerPage - 1, totalDailyDays);
 
-    let html = `
-        <div class="left-panel p-4 p-md-5">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <span class="badge bg-dark text-white px-3 py-1.5 fw-bold small tracking-wide">PASSAGE FRAME</span>
-                <span class="bookmark-status-banner"><i class="bi bi-bookmark-fill me-1"></i> Flagged Item</span>
-            </div>
-            <div class="sat-passage">${q.passage}</div>
-        </div>
-        
-        <div class="right-panel p-4 p-md-5 bg-white">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <span class="badge bg-light text-dark border border-2 border-dark px-3 py-1.5 fw-bold small tracking-wide">QUESTION PARAMETERS</span>
-                <div style="cursor: pointer;" onclick="triggerFlag()">
-                    <i class="bi ${bookmarkedQuestions[current] ? 'bi-bookmark-fill text-dark' : 'bi-bookmark text-muted'}" style="font-size: 1.5rem;"></i>
-                </div>
-            </div>
-            <div class="question-text mb-4">${current + 1}. ${q.q}</div>
-            <div class="d-flex flex-column gap-1">`;
-
-    q.options.forEach((opt, i) => {
-        let isSelected = (userAnswers[current] === i) ? 'selected' : '';
-        let isStruck = struckOptions[current][i] ? 'struck' : '';
-        let strikeActive = struckOptions[current][i] ? 'active' : '';
-        let letter = String.fromCharCode(65 + i);
-
-        html += `
-            <div class="option-wrapper">
-                <div class="bb-option-card ${isSelected} ${isStruck}" onclick="selectOption(${i})">
-                    <span class="letter-badge">${letter}</span>
-                    <span class="option-text-span">${opt}</span>
-                </div>
-                <button class="bb-strike-btn ${strikeActive}" onclick="toggleStrike(${i}, event)" title="Strike Option">
-                    <i class="bi bi-type-strikethrough"></i>
-                </button>
-            </div>`;
-    });
-
-    html += `</div></div>`;
-    document.getElementById("quiz").innerHTML = html;
-    
-    document.getElementById("prevBtn").disabled = (current === 0);
-    document.getElementById("nextBtn").disabled = (current === questions.length - 1);
-    
-    // Smooth reset panel scrolls to top upon dynamic load updates
-    const lp = document.querySelector('.left-panel');
-    const rp = document.querySelector('.right-panel');
-    if (lp) lp.scrollTop = 0;
-    if (rp) rp.scrollTop = 0;
-
-    buildNavGridMap();
-}
-
-function triggerFlag() {
-    bookmarkedQuestions[current] = !bookmarkedQuestions[current];
-    loadQuestion();
-}
-
-function toggleStrike(optionIndex, event) {
-    event.stopPropagation();
-    struckOptions[current][optionIndex] = !struckOptions[current][optionIndex];
-    if (struckOptions[current][optionIndex] && userAnswers[current] === optionIndex) {
-        userAnswers[current] = null;
-    }
-    loadQuestion();
-}
-
-function selectOption(i) {
-    if (struckOptions[current][i]) return;
-    userAnswers[current] = i;
-    loadQuestion();
-}
-
-function buildNavGridMap() {
-    const container = document.getElementById("navGridMapContainer");
-    container.innerHTML = "";
-    
-    questions.forEach((_, idx) => {
-        let statusClass = "";
-        if (current === idx) statusClass += " active";
-        if (userAnswers[idx] !== null) statusClass += " answered";
-        
-        let bookmarkIcon = bookmarkedQuestions[idx] ? `<i class="bi bi-bookmark-fill flag-indicator"></i>` : "";
-        
-        container.innerHTML += `
-            <div class="map-grid-item ${statusClass}" onclick="jumpToQuestion(${idx})">
-                ${idx + 1}
-                ${bookmarkIcon}
-            </div>`;
-    });
-}
-
-function jumpToQuestion(index) {
-    current = index;
-    loadQuestion();
-}
-
-function nextQ() {
-    if (current < questions.length - 1) {
-        current++;
-        loadQuestion();
-    }
-}
-
-function prevQ() {
-    if (current > 0) {
-        current--;
-        loadQuestion();
-    }
-}
-
-function finishQuiz() {
-    clearInterval(countdownInterval);
-    document.body.classList.remove("quiz-active"); // Restores general document flow for results review
-
-    document.getElementById("topbarStats").classList.add("d-none");
-    document.getElementById("toolFlag").classList.add("d-none");
-    document.getElementById("quizFooter").classList.add("d-none");
-    
-    const workspace = document.getElementById("workspaceContainer");
-    workspace.classList.remove("is-bookmarked");
-
-    let scoreCount = 0;
-    let reviewHTML = `
-        <div class="w-100 p-3 p-md-5">
-            <div class="row justify-content-center mx-0">
-                <div class="col-12 col-xl-9">
-                    <div class="card border border-2 border-dark shadow-sm p-4 bg-white rounded-3 mb-4">
-                        <h4 class="fw-bold text-center mb-3">SAT® Assessment Performance Evaluation</h4>
-                        <div class="row g-3 text-center" id="scoreMetricRow"></div>
+        for (let i = start; i <= end; i++) {
+            if (i === 15 || i === 30) {
+                grid.innerHTML += `
+                    <div class="col-12 col-md-6 col-lg-4">
+                        <div class="day-card paused-card">
+                            <div>
+                                <span class="badge bg-dark mb-1 small text-white" style="font-size:0.65rem;"><i class="bi bi-pause-fill me-1"></i>PAUSED</span>
+                                <h6 class="fw-bold m-0 text-muted">Practice Frame — Day ${String(i).padStart(2, '0')}</h6>
+                                <small class="text-secondary small">See Biweekly Tab</small>
+                            </div>
+                            <i class="bi bi-lock-fill fs-6 text-muted ms-2"></i>
+                        </div>
                     </div>`;
-
-    questions.forEach((q, i) => {
-        let isCorrect = (userAnswers[i] === q.answer);
-        if(isCorrect) scoreCount++;
+            } else {
+                grid.innerHTML += `
+                    <div class="col-12 col-md-6 col-lg-4">
+                        <a href="https://ahnaf6dec.github.io/SAT-mocks/English/Vocabs/day${i}.html" class="day-card">
+                            <div>
+                                <span class="badge badge-daily mb-1 small" style="font-size:0.65rem;">DAILY MATRIX</span>
+                                <h6 class="fw-bold m-0 text-dark">Practice Frame — Day ${String(i).padStart(2, '0')}</h6>
+                                <small class="text-muted small">18 Questions &bull; 15 Mins</small>
+                            </div>
+                            <i class="bi bi-chevron-right fs-6 text-muted ms-2"></i>
+                        </a>
+                    </div>`;
+            }
+        }
+        renderPagination();
+    } 
+    else if (currentTrack === 'biweekly') {
+        paginationWrapper.classList.add("d-none");
         
-        let statusBadge = isCorrect ? 
-            `<span class="badge bg-dark text-white border border-2 border-dark px-3 py-1.5 fw-bold"><i class="bi bi-check-circle-fill me-1"></i> CORRECT</span>` : 
-            `<span class="badge bg-white text-dark border border-2 border-dark px-3 py-1.5 fw-bold"><i class="bi bi-x-circle-fill me-1"></i> INCORRECT</span>`;
+        const biweeklyTests = [
+            { day: 15, title: "Biweekly Milestone Review 01", desc: "Mandatory review tracking system covering metrics from Days 1 to 14. Daily practice is paused." },
+            { day: 30, title: "Biweekly Milestone Review 02", desc: "Mandatory review tracking system covering metrics from Days 16 to 29. Daily practice is paused." }
+        ];
 
-        reviewHTML += `
-            <div class="card border border-2 border-dark shadow-sm rounded-3 p-4 bg-white mb-4">
-                <div class="d-flex justify-content-between align-items-center border-bottom border-2 pb-2 mb-3">
-                    <h6 class="fw-bold m-0 text-dark">Question Sequence Matrix ${i + 1}</h6>
-                    ${statusBadge}
-                </div>
-                <div class="sat-passage p-3 bg-light rounded text-muted mb-3 border-start border-4 border-dark fs-6">
-                    ${q.passage}
-                </div>
-                <p class="fw-bold text-dark fs-5 mb-2">${q.q}</p>
-                <div class="fs-6 mb-3 p-2.5 border rounded">
-                    <div class="text-secondary"><strong>Selected Student Profile Asset:</strong> <span class="fw-bold text-dark">${userAnswers[i] !== null ? q.options[userAnswers[i]] : 'None Registered'}</span></div>
-                    <div class="text-dark mt-1"><strong>Calibrated Answer Target Key:</strong> <span class="fw-bold">${q.options[q.answer]}</span></div>
-                </div>
-                <div class="p-3 bg-light rounded text-secondary border small fs-6">
-                    <strong>Analytical Context Rationale:</strong> ${q.explanation}
-                </div>
+        biweeklyTests.forEach(test => {
+            grid.innerHTML += `
+                <div class="col-12 col-md-6">
+                    <a href="quiz.html?day=${test.day}&type=biweekly" class="day-card" style="border-left: 4px solid var(--accent-purple);">
+                        <div>
+                            <span class="badge badge-biweekly mb-1 small" style="font-size:0.65rem;">50 QUESTIONS &bull; 48 MINS</span>
+                            <h6 class="fw-bold text-dark m-0 fs-5">${test.title}</h6>
+                            <small class="text-secondary small d-block mt-1">${test.desc}</small>
+                        </div>
+                        <i class="bi bi-clock text-dark ms-2" style="font-size: 1.15rem;"></i>
+                    </a>
+                </div>`;
+        });
+    } 
+    else if (currentTrack === 'mega') {
+        paginationWrapper.classList.add("d-none");
+        
+        grid.innerHTML += `
+            <div class="col-12">
+                <a href="quiz.html?type=mega" class="day-card py-4" style="border-left: 4px solid var(--accent-rose);">
+                    <div>
+                        <span class="badge badge-mega mb-1 small" style="font-size:0.65rem;">100 QUESTIONS &bull; 96 MINS</span>
+                        <h5 class="fw-bold text-dark mb-1">Day 30 Cumulative Mega Assessment Simulation</h5>
+                        <p class="text-secondary small mb-0">Comprehensive evaluation reviewing structural vocabulary retention parameters across all master question bank datasets. Activates in tandem with the final milestone phase.</p>
+                    </div>
+                    <i class="bi bi-award text-dark ms-3" style="font-size: 1.75rem;"></i>
+                </a>
             </div>`;
-    });
+    }
+}
 
-    reviewHTML += `
-                <div class="text-center pt-2">
-                    <a href="index.html" class="btn btn-dark btn-lg px-5 py-2.5 rounded fs-6 fw-bold"><i class="bi bi-house-door me-2"></i> Return to Portal Track Dashboard</a>
-                </div>
-            </div></div></div>`;
+function renderPagination() {
+    const controls = document.getElementById("paginationControls");
+    controls.innerHTML = "";
+    const totalPages = Math.ceil(totalDailyDays / itemsPerPage);
 
-    document.getElementById("quiz").innerHTML = reviewHTML;
-    document.getElementById("quiz").className = "w-100 d-block";
-    
-    document.getElementById("scoreMetricRow").innerHTML = `
-        <div class="col-6">
-            <div class="p-3 bg-dark text-white rounded-3">
-                <span class="text-light d-block small fw-bold mb-1 uppercase tracking-wide">RAW OUTPUT</span>
-                <h3 class="fw-bold m-0">${scoreCount} / ${questions.length}</h3>
-            </div>
-        </div>
-        <div class="col-6">
-            <div class="p-3 bg-light border border-2 border-dark text-dark rounded-3">
-                <span class="text-muted d-block small fw-bold mb-1 uppercase tracking-wide">ACCURACY INDEX</span>
-                <h3 class="fw-bold m-0">${Math.round((scoreCount / questions.length) * 100)}%</h3>
-            </div>
-        </div>`;
+    controls.innerHTML += `
+        <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+            <a class="page-link" href="#" onclick="changePage(${currentPage - 1})"><i class="bi bi-chevron-left"></i></a>
+        </li>`;
+
+    for (let i = 1; i <= totalPages; i++) {
+        controls.innerHTML += `
+            <li class="page-item ${currentPage === i ? 'active' : ''}">
+                <a class="page-link" href="#" onclick="changePage(${i})">${i}</a>
+            </li>`;
+    }
+
+    controls.innerHTML += `
+        <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+            <a class="page-link" href="#" onclick="changePage(${currentPage + 1})"><i class="bi bi-chevron-right"></i></a>
+        </li>`;
+}
+
+function changePage(page) {
+    const totalPages = Math.ceil(totalDailyDays / itemsPerPage);
+    if (page < 1 || page > totalPages) return;
+    currentPage = page;
+    renderTrack();
+}
+
+function switchTrack(trackName) {
+    currentTrack = trackName;
+    currentPage = 1; 
+    renderTrack();
 }
 
 window.onload = function() {
-    initLiveClockClockPanel();
+    renderTrack();
 }
 </script>
 </body>
