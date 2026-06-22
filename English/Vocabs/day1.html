@@ -397,7 +397,7 @@
                         <div class="text-secondary mb-4 small">
                             <h6 class="fw-bold text-dark mb-2"><i class="bi bi-gear-fill me-2"></i>Testing Parameters:</h6>
                             <ul class="ps-3 mt-2">
-                                <li class="mb-1"><strong>Volume:</strong> 18 contextual reading matrix tasks.</li>
+                                <li class="mb-1"><strong>Volume:</strong> <span id="paramVolumeCount">18</span> unique contextual reading matrix tasks.</li>
                                 <li class="mb-1"><strong>Timeline:</strong> 15 minutes absolute countdown constraint.</li>
                                 <li class="mb-1"><strong>Controls:</strong> Select choices to register responses. Toggle <i class="bi bi-bookmark"></i> to flag questions instantly.</li>
                             </ul>
@@ -456,29 +456,436 @@
 <script>
 // --- CORE REPOSITORY STORAGE LAYER ---
 const masterQuestionBank = {
-    abdicate: [
+    abase: [
         {
-            passage: "In 1848, the sudden abdication of King Louis Philippe of France sent shockwaves through European monarchies. Facing widespread public unrest and demands for democratic electoral reform, the king realized that his traditional authority could no longer hold back the swelling tide of revolution.",
-            q: "As used in the text, what does the word 'abdication' most nearly mean?",
-            options: ["The formal act of stepping down from a position of power.", "The military defense of a sovereign territory.", "The aggressive expansion of national borders.", "The strategic restructuring of parliamentary laws."],
+            passage: "During the trial, the prosecutor attempted to ______ the defendant's character by bringing up unrelated personal mistakes from a decade prior, forcing the defense attorney to object to these continuous attempts at public degradation.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["abase", "abate", "augment", "reconcile"],
             answer: 0,
-            explanation: "'Abdication' means giving up office or authority. The passage highlights a king realizing his authority cannot hold, forcing him to surrender his position."
+            explanation: "The text describes an effort to publicly degrade or humiliate a character, matching the exact definition of 'abase'."
         },
         {
-            passage: "When the corporate scandal broke, the CEO chose to ______ her responsibilities rather than face the regulatory committee. Her sudden departure left the board of directors scrambling to find an interim replacement to stabilize the company's stock value.",
+            passage: "The custom of making conquered rulers grovel at the victor’s feet was explicitly designed to ______ the defeated state's remaining prestige and establish absolute subservience.",
             q: "Which choice completes the text with the most logical and precise word?",
-            options: ["abdicate", "champion", "augment", "reconcile"],
+            options: ["exalt", "abase", "corroborate", "alleviate"],
+            answer: 1,
+            explanation: "Groveling acts to humiliate and degrade the defeated state's prestige, making 'abase' the correct logical match."
+        },
+        {
+            passage: "In her autobiography, the artist reflected that she refused to ______ herself by catering to commercial trends that compromised her core creative vision.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["abase", "abate", "venerate", "validate"],
             answer: 0,
-            explanation: "The CEO left her responsibilities rather than facing the committee, meaning she chose to 'abdicate' (relinquish or give up) her formal duties."
+            explanation: "Catering to superficial commercial trends against her artistic ideals would mean degrading or lowering herself, which is to 'abase'."
+        },
+        {
+            passage: "The code of chivalry dictated that a knight must never intentionally ______ a worthy opponent through mocking language, asserting instead that mutual respect was paramount.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["glorify", "abate", "abase", "abdicate"],
+            answer: 2,
+            explanation: "Mocking language is an intentional effort to humiliate or lower an opponent, aligning perfectly with 'abase'."
+        },
+        {
+            passage: "Critics argued that the dynamic layout of the reality television program was engineered primarily to ______ its participants for high viewer engagement ratings.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["abase", "embellish", "pacify", "vindicate"],
+            answer: 0,
+            explanation: "The sentence implies generating views by humiliating or degrading participants, making 'abase' the correct vocabulary choice."
+        },
+        {
+            passage: "Rather than defending his controversial research method, the academic chose to ______ his credibility by issuing a highly public, overly dramatic apology that admitted to non-existent faults.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["abase", "abate", "champion", "revere"],
+            answer: 0,
+            explanation: "An apology admitting to non-existent faults would humiliate or lower the academic's standing, thus causing him to 'abase' his credibility."
+        },
+        {
+            passage: "The strict drill sergeant refused to deliberately ______ the recruits, opting instead to build their confidence through challenging physical and mental training exercises.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["ennoble", "abase", "abate", "relinquish"],
+            answer: 1,
+            explanation: "Building confidence is contrasted with deliberately humiliating or degrading the recruits, which means 'abase'."
+        },
+        {
+            passage: "Ancient historical accounts describe how the emperor was forced to ______ himself before the assembly, discarding his imperial garments as penance for his administrative failures.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["elevate", "abase", "abate", "substantiate"],
+            answer: 1,
+            explanation: "Discarding imperial clothes and showing penance in front of an assembly is an act of self-humiliation or self-degradation ('abase')."
+        },
+        {
+            passage: "Sociologists note that oppressive caste hierarchies function largely through institutional mechanisms that continuously ______ targeted demographics.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["abase", "abate", "empower", "venerate"],
+            answer: 0,
+            explanation: "Oppressive structures keep specific demographics degraded or humiliated, which aligns with 'abase'."
+        },
+        {
+            passage: "The politician vowed that he would never ______ his office by engaging in underhanded mudslinging campaigns, even if his opponent initiated them.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["exalt", "abate", "abase", "abdicate"],
+            answer: 2,
+            explanation: "Engaging in cheap mudslinging would degrade or lower the dignity of the political office, meaning to 'abase' it."
         }
     ],
     abate: [
         {
-            passage: "The structural integrity of the ancient Roman aqueduct remained uncompromised for centuries. However, recent seismic activity in the region has caused the subterranean foundations to slowly degrade, threatening the stability of the entire architectural marvel.",
+            passage: "The meteorologist predicted that the coastal storm surge would finally ______ once the atmospheric high-pressure system shifted inland later that evening.",
             q: "Which choice completes the text with the most logical and precise word?",
-            options: ["abase", "abate", "corroborate", "aggravate"],
+            options: ["escalate", "abate", "abase", "persist"],
             answer: 1,
-            explanation: "'Abate' means to lessen or diminish. In this context, it describes the gradual reduction or lessening of structural stability."
+            explanation: "A storm surge decreasing or lessening corresponds to the definition of 'abate'."
+        },
+        {
+            passage: "Economists hope that inflation rates will begin to ______ following the implementation of the central bank's restrictive monetary guidelines.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["abate", "abase", "proliferate", "intensify"],
+            answer: 0,
+            explanation: "The context indicates a desired reduction or lessening of inflation, which means to 'abate'."
+        },
+        {
+            passage: "The community's outrage over the zoning decision did not ______; instead, it grew stronger as more residents joined the local activist group.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["abase", "abate", "dwindle", "dissolve"],
+            answer: 1,
+            explanation: "The word 'instead' introduces a contrast with growing stronger, meaning the original outrage failed to lessen or 'abate'."
+        },
+        {
+            passage: "After the administrative modifications were introduced, the constant flow of technical complaints from users began to ______ significantly.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["abate", "abase", "multiply", "reverberate"],
+            answer: 0,
+            explanation: "Complaints decreasing or diminishing in volume over time matches the meaning of 'abate'."
+        },
+        {
+            passage: "Legal scholars noted that the public clamor for immediate legislative reform tended to ______ once the high-profile trial concluded.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["surge", "abase", "abate", "endure"],
+            answer: 2,
+            explanation: "Public noise or clamor lessening or dying down over time is described as shifting to 'abate'."
+        },
+        {
+            passage: "The medical staff administered a powerful analgesic, causing the patient's acute postoperative discomfort to ______ within minutes.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["abate", "abase", "aggravate", "flourish"],
+            answer: 0,
+            explanation: "Pain medicine causes discomfort to lessen or reduce, which fits the definition of 'abate'."
+        },
+        {
+            passage: "Environmentalists warned that unless carbon emission output levels ______ immediately, global temperature adjustments would accelerate dangerously.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["amplify", "abase", "abate", "stabilize"],
+            answer: 2,
+            explanation: "The warning focuses on emission levels reducing or lessening, which is to 'abate'."
+        },
+        {
+            passage: "Although the high winds began to ______ around midnight, the heavy torrential rainfall continued unabated until dawn.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["abase", "abate", "intensify", "prevail"],
+            answer: 1,
+            explanation: "The passage sets up a contrast with rain continuing 'unabated,' meaning the winds did diminish or 'abate'."
+        },
+        {
+            passage: "Company executives expected the initial market resistance to their new pricing tier to ______ once consumers realized the product’s premium quality.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["abate", "abase", "escalate", "broaden"],
+            answer: 0,
+            explanation: "Resistance dropping or lessening as value is recognized fits the description of 'abate'."
+        },
+        {
+            passage: "The architectural marvel was engineered to withstand severe tremors without causing structural performance stability to ______.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["abase", "abate", "flourish", "augment"],
+            answer: 1,
+            explanation: "Withstanding tremors means the structure prevents its baseline stability from diminishing or 'abating'."
+        }
+    ],
+    abdicate: [
+        {
+            passage: "In 1917, Tsar Nicholas II was forced to ______ the imperial throne of Russia, marking the definitive conclusion of the Romanov dynasty's centuries-long autocracy.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["abdicate", "abase", "abate", "usurp"],
+            answer: 0,
+            explanation: "Giving up a throne or position of monarchical leadership is the precise historical definition of 'abdicate'."
+        },
+        {
+            passage: "By refusing to attend the mandatory oversight committee meetings, the department head appeared to ______ his managerial responsibilities entirely.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["assume", "abase", "abdicate", "abate"],
+            answer: 2,
+            explanation: "Abandoning or giving up core administrative leadership duties means to 'abdicate' them."
+        },
+        {
+            passage: "Historians argue that the prime minister did not simply retire; rather, she chose to ______ her power during a time of crisis to avoid incoming political blame.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["abdicate", "abase", "seize", "consolidate"],
+            answer: 0,
+            explanation: "Voluntarily giving up executive power or leadership position to dodge accountability is to 'abdicate'."
+        },
+        {
+            passage: "The aging monarch announced her decision to ______ in favor of her eldest daughter, ensuring a stable transition of state governance.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["abase", "abate", "abdicate", "reign"],
+            answer: 2,
+            explanation: "Stepping down from a royal position to pass leadership down to a successor is the definition of 'abdicate'."
+        },
+        {
+            passage: "Corporate governance guidelines state that board members must never ______ their fiduciary duties to outside third-party consulting networks.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["embrace", "abdicate", "abase", "abate"],
+            answer: 1,
+            explanation: "The passage emphasizes that legal or professional leadership duties must not be abandoned or given up ('abdicated')."
+        },
+        {
+            passage: "When the military faction demanded his immediate resignation, the president realized his only remaining option to prevent a civil war was to ______.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["abdicate", "abase", "abate", "retaliate"],
+            answer: 0,
+            explanation: "Resigning and giving up the ultimate office of leadership to avoid war matches the meaning of 'abdicate'."
+        },
+        {
+            passage: "Critics accused the regulatory agency of choosing to ______ its authority over big tech firms, leaving data privacy issues largely unmonitored.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["assert", "abase", "abdicate", "abate"],
+            answer: 2,
+            explanation: "Surrendering or giving up the authority to govern or monitor matches the contextual use of 'abdicate'."
+        },
+        {
+            passage: "The treaty required the occupying superpower to completely ______ its administrative control over the neutral territorial zone.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["abdicate", "abase", "abate", "augment"],
+            answer: 0,
+            explanation: "Giving up structural or sovereign control and leadership over a territory is to 'abdicate' it."
+        },
+        {
+            passage: "Rather than addressing the ongoing systemic errors, the executive team decided to ______ their leadership roles and pass the issues to the incoming board.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["validate", "abase", "abate", "abdicate"],
+            answer: 3,
+            explanation: "Stepping away from and giving up leadership roles under duress corresponds to the definition of 'abdicate'."
+        },
+        {
+            passage: "No true leader would choose to ______ their ethical obligations to the public when confronted by highly lucrative special interest lobbying groups.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["abase", "abdicate", "abate", "champion"],
+            answer: 1,
+            explanation: "Abandoning or renouncing moral or ethical duties of leadership is described as 'abdicating'."
+        }
+    ],
+    zephyr: [
+        {
+            passage: "The intense summer heat was temporarily broken by a cool mid-afternoon ______, which rustled the leaves of the oak trees and brought brief relief to the orchard farmers.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["gale", "zephyr", "tempest", "deluge"],
+            answer: 1,
+            explanation: "A gentle breeze that rustles leaves and brings mild relief is a 'zephyr'."
+        },
+        {
+            passage: "Poets of the Romantic era frequently invoked the image of the gentle ______ to symbolize the subtle, rejuvenating forces of nature during early spring.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["zephyr", "blizzard", "vortex", "avalanche"],
+            answer: 0,
+            explanation: "A soft, gentle breeze fits the description of a 'zephyr', a common poetic term for light air currents."
+        },
+        {
+            passage: "Unlike the destructive windstorms that common monsoons bring, a ______ causes minimal disturbance to delicate coastal flora.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["hurricane", "typhoon", "zephyr", "torrent"],
+            answer: 2,
+            explanation: "The passage sets up a contrast with destructive windstorms, indicating a very mild, gentle breeze ('zephyr')."
+        },
+        {
+            passage: "As they sat on the veranda, a warm maritime ______ carried the sweet aroma of blooming jasmine across the courtyard.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["zephyr", "cyclone", "downpour", "bluster"],
+            answer: 0,
+            explanation: "A light air current capable of gently carrying fragrances is logically a 'zephyr'."
+        },
+        {
+            passage: "The lightweight linen sails of the miniature model boat caught the faint afternoon ______ and glided smoothly across the calm pond.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["gale", "zephyr", "maelstrom", "avalanche"],
+            answer: 1,
+            explanation: "A faint, gentle breeze that moves a small toy boat across a calm pond is a 'zephyr'."
+        },
+        {
+            passage: "Weather records indicated that the howling winter winds had ceased, replaced by a peaceful spring ______ that signaled a shift in climate patterns.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["zephyr", "squall", "blizzard", "tempest"],
+            answer: 0,
+            explanation: "A peaceful spring breeze contrasted with howling winter winds is a 'zephyr'."
+        },
+        {
+            passage: "The sheer chiffon curtains fluttered gently in response to the evening ______, creating a soothing movement throughout the quiet room.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["vortex", "gale", "zephyr", "monsoon"],
+            answer: 2,
+            explanation: "Chiffon curtains fluttering softly requires a gentle breeze, which is a 'zephyr'."
+        },
+        {
+            passage: "Hikers resting at the ridge summit welcomed the refreshing alpine ______, which cooled them after their strenuous uphill climb.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["zephyr", "whirlwind", "deluge", "bluster"],
+            answer: 0,
+            explanation: "A refreshing, gentle breeze encountered at a mountain ridge is called a 'zephyr'."
+        },
+        {
+            passage: "The calm lake surface remained almost completely undisturbed, showing only tiny ripples where a passing ______ brushed the water.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["hurricane", "zephyr", "squall", "torrent"],
+            answer: 1,
+            explanation: "Tiny ripples on an otherwise undisturbed lake indicate the touch of a very gentle breeze, or 'zephyr'."
+        },
+        {
+            passage: "In Greek mythology, Astraeus and Eos produced the winds, including the gentle western ______ known for ushering in the season of growth.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["tempest", "gale", "zephyr", "cyclone"],
+            answer: 2,
+            explanation: "The gentle western wind is traditionally personified as Zephyrus, meaning a gentle breeze or 'zephyr'."
+        }
+    ],
+    zenith: [
+        {
+            passage: "Architectural historians note that the construction of the cathedral marked the absolute ______ of Gothic engineering, showcasing unprecedented heights and light integration.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["nadir", "zenith", "foundation", "periphery"],
+            answer: 1,
+            explanation: "The highest point or culminating peak of an artistic/engineering movement is its 'zenith'."
+        },
+        {
+            passage: "At the absolute ______ of her operatic career, the soprano performed for sold-out crowds across three continents and received the nation's highest artistic honor.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["zenith", "nadir", "commencement", "decline"],
+            answer: 0,
+            explanation: "Performing for sold-out global crowds and winning top honors represents the peak or 'zenith' of a career."
+        },
+        {
+            passage: "Astronomers call the exact point on the celestial sphere that is directly overhead an observer the ______, contrasting it directly with the nadir.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["horizon", "zenith", "equator", "meridian"],
+            answer: 1,
+            explanation: "In astronomy, the highest point directly overhead is defined as the 'zenith'."
+        },
+        {
+            passage: "The Roman Empire is widely considered by classicists to have reached its territorial and economic ______ during the Pax Romana under the Antonine emperors.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["nadir", "zenith", "threshold", "obscurity"],
+            answer: 1,
+            explanation: "The peak or highest historical point of imperial power and wealth is its 'zenith'."
+        },
+        {
+            passage: "Many film critics assert that the director's 1974 masterpiece represents the ______ of his cinematic achievements, a standard he never quite matched again.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["zenith", "nadir", "origin", "aberration"],
+            answer: 0,
+            explanation: "The highest culminating point of an artist's achievements is referred to as their 'zenith'."
+        },
+        {
+            passage: "When the tech startup's valuation reached its ______, its founders were celebrated on every major business magazine cover before the subsequent market crash.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["nadir", "periphery", "zenith", "inception"],
+            answer: 2,
+            explanation: "The absolute highest point of valuation and fame before a crash is the 'zenith'."
+        },
+        {
+            passage: "The sun reached its midday ______ directly above the desert landscape, casting virtually no shadows on the sand dunes below.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["zenith", "horizon", "nadir", "base"],
+            answer: 0,
+            explanation: "The sun reaching its highest point directly overhead at noon matches the literal meaning of 'zenith'."
+        },
+        {
+            passage: "Scholars emphasize that the philosopher's later treatises do not represent a decline, but rather the intellectual ______ of his decades of research.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["nadir", "zenith", "genesis", "prelude"],
+            answer: 1,
+            explanation: "The highest or culminating point of decades of intellectual work is its 'zenith'."
+        },
+        {
+            passage: "The kingdom’s cultural influence reached its ______ during the golden age, when literature, science, and the arts flourished under royal patronage.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["zenith", "nadir", "outset", "margin"],
+            answer: 0,
+            explanation: "A golden age represents the highest peak or 'zenith' of cultural flourishing."
+        },
+        {
+            passage: "Though he started as an entry-level clerk, his appointment to Chief Executive Officer marked the professional ______ of his corporate journey.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["nadir", "zenith", "beginning", "subversion"],
+            answer: 1,
+            explanation: "Reaching the absolute top position of a company represents the peak or 'zenith' of a corporate career."
+        }
+    ],
+    zealous: [
+        {
+            passage: "The environmental organization was driven by ______ volunteers who worked tireless hours planting trees and distributing educational pamphlets across the city.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["apathetic", "indifferent", "zealous", "lethargic"],
+            answer: 2,
+            explanation: "Volunteers working tireless hours out of intense eagerness and fervor are described as 'zealous'."
+        },
+        {
+            passage: "As a ______ advocate for educational equity, the reformer spent her entire life lobbying for increased public school funding in low-income neighborhoods.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["zealous", "passive", "detached", "nonchalant"],
+            answer: 0,
+            explanation: "Spending an entire life fervently pursuing a cause demonstrates a passionate or 'zealous' nature."
+        },
+        {
+            passage: "The defense attorney mounted a ______ defense of his client, meticulously cross-examining every witness and analyzing hundreds of hours of forensic footage.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["perfunctory", "zealous", "apathetic", "negligent"],
+            answer: 1,
+            explanation: "A highly meticulous, passionate, and eager effort to defend someone matches the definition of 'zealous'."
+        },
+        {
+            passage: "Though many found the ancient text dry, the ______ historical scholar spent late nights deciphering its faded calligraphy with great eagerness.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["indifferent", "lukewarm", "zealous", "fatigued"],
+            answer: 2,
+            explanation: "Working with great eagerness and dedication despite a subject being dry shows a 'zealous' disposition."
+        },
+        {
+            passage: "The coach praised the team's ______ training efforts during the off-season, attributing their championship victory directly to their earnest dedication.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["zealous", "lax", "disinterested", "halfhearted"],
+            answer: 0,
+            explanation: "Earnest dedication and intense pursuit of training goals are signs of a 'zealous' approach."
+        },
+        {
+            passage: "Campaign managers relied heavily on ______ young organizers to coordinate door-to-door canvassing operations in key competitive voting districts.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["unmoved", "zealous", "sluggish", "complacent"],
+            answer: 1,
+            explanation: "Fervent, enthusiastic political organizers filled with eager dedication are described as 'zealous'."
+        },
+        {
+            passage: "Museum curators were impressed by the collector’s ______ pursuit of rare Renaissance coins, a quest that took him to auctions across forty countries.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["indifferent", "casual", "zealous", "careless"],
+            answer: 2,
+            explanation: "Traveling to forty countries in intense pursuit of an objective demonstrates a 'zealous' commitment."
+        },
+        {
+            passage: "While his colleagues approached the research project with mild curiosity, Dr. Kang was ______; he spent every weekend compiling experimental control data.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["apathetic", "zealous", "passive", "uncommitted"],
+            answer: 1,
+            explanation: "Working through weekends out of extreme fervor contrasts with 'mild curiosity,' defining Dr. Kang as 'zealous'."
+        },
+        {
+            passage: "The consumer rights advocate was ______ in her oversight of corporate safety measures, refusing to overlook even minor product compliance failures.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["zealous", "negligent", "perfunctory", "careless"],
+            answer: 0,
+            explanation: "Refusing to overlook anything due to deep commitment to a cause shows a 'zealous' mindset."
+        },
+        {
+            passage: "Early biographers described the young inventor as a ______ student who frequently skipped meals to complete his mechanical prototypes ahead of schedule.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["lethargic", "indifferent", "zealous", "disinclined"],
+            answer: 2,
+            explanation: "Skipping meals to eagerly complete projects reflects an intense, eager pursuit, meaning the student was 'zealous'."
         }
     ]
 };
@@ -530,11 +937,20 @@ function generateDynamicTestSession() {
     for (const category in masterQuestionBank) {
         masterQuestionBank[category].forEach(item => completePool.push({...item}));
     }
+    // Shuffle all gathered unique questions randomly
     shuffleArray(completePool);
-    while (completePool.length < 18) {
-        completePool = completePool.concat(JSON.parse(JSON.stringify(completePool)));
-    }
+    
+    // Select exactly 18 unique questions from the pool of 60 items
     return completePool.slice(0, 18);
+}
+
+function updateInstructionParameters() {
+    let uniqueCount = 0;
+    for (const category in masterQuestionBank) {
+        uniqueCount += masterQuestionBank[category].length;
+    }
+    const displayCount = Math.min(18, uniqueCount);
+    document.getElementById("paramVolumeCount").innerText = displayCount;
 }
 
 function startTest() {
@@ -775,6 +1191,7 @@ function finishQuiz() {
 
 window.onload = function() {
     initLiveClockClockPanel();
+    updateInstructionParameters();
 }
 </script>
 </body>
