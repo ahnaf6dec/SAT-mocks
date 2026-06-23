@@ -1,0 +1,1199 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAT® Digital Test Workspace</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <style>
+        :root {
+            --pure-black: #000000;
+            --off-black: #111111;
+            --dark-gray: #333333;
+            --light-border: #e5e5e5;
+            --active-bg: #f8fafc;
+            --pure-white: #ffffff;
+        }
+
+        /* --- Global Reset & Adaptive Viewport Control --- */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            background-color: var(--pure-white);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: var(--pure-black);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Standard body flow default for Home Page */
+        body {
+            overflow-y: auto; 
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ACTIVE EXAM RUNTIME OVERRIDES: Locks layout to prevent general window scrollbars */
+        body.quiz-active {
+            overflow: hidden !important;
+        }
+
+        /* --- Premium High-Contrast Header UI --- */
+        .bb-header {
+            background-color: var(--pure-black);
+            color: var(--pure-white);
+            padding: 14px 24px;
+            flex-shrink: 0;
+            border-bottom: 2px solid var(--pure-black);
+        }
+        .bb-module-title {
+            font-size: 0.8rem;
+            font-weight: 800;
+            letter-spacing: 0.1em;
+            color: #a3a3a3;
+            text-transform: uppercase;
+        }
+        .bb-live-clock-panel {
+            font-size: 0.95rem;
+            color: var(--pure-white);
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            margin-top: 2px;
+        }
+        .bb-timer-container {
+            background-color: var(--off-black);
+            border-radius: 6px;
+            padding: 6px 14px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1.25rem;
+            font-weight: 800;
+            border: 2px solid #444444;
+            color: var(--pure-white);
+            letter-spacing: 1px;
+        }
+        .bb-tool-btn {
+            background: var(--pure-white);
+            border: 2px solid var(--pure-black);
+            color: var(--pure-black);
+            padding: 8px 16px;
+            font-size: 0.9rem;
+            border-radius: 6px;
+            font-weight: 700;
+            transition: all 0.15s ease-in-out;
+        }
+        .bb-tool-btn:hover {
+            background-color: var(--pure-black);
+            color: var(--pure-white);
+        }
+        .bb-tool-btn.flagged-active {
+            background-color: var(--pure-black);
+            color: var(--pure-white);
+            border-color: var(--pure-black);
+        }
+
+        /* --- Main Workspace Layout Container --- */
+        .workspace-container {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            background-color: var(--pure-white);
+            min-height: 0; /* Critical CSS container budget layout fix */
+        }
+
+        /* Home Page Container Setup (Natural Page Scrollable Flow) */
+        #instructionsCard {
+            width: 100%;
+            padding: 40px 20px;
+            margin-bottom: 40px;
+        }
+
+        /* Split Panels Workspace Mode for Quiz Arena */
+        @media (min-width: 992px) {
+            body.quiz-active .workspace-container {
+                flex-direction: row;
+                height: calc(100vh - 74px - 70px); /* Strict screen dimension minus header/footer heights */
+                overflow: hidden;
+            }
+            body.quiz-active .left-panel {
+                width: 50%;
+                height: 100%;
+                overflow-y: auto;
+                border-right: 2px solid var(--pure-black);
+                background-color: var(--pure-white);
+            }
+            body.quiz-active .right-panel {
+                width: 50%;
+                height: 100%;
+                overflow-y: auto;
+                background-color: var(--pure-white);
+            }
+        }
+        @media (max-width: 991.98px) {
+            body.quiz-active {
+                overflow-y: auto !important; /* Fallback for small viewports */
+            }
+            body.quiz-active .workspace-container {
+                height: auto;
+            }
+            body.quiz-active .left-panel, 
+            body.quiz-active .right-panel {
+                width: 100%;
+                height: auto;
+                overflow-y: visible;
+            }
+            body.quiz-active .left-panel {
+                border-bottom: 2px solid var(--pure-black);
+            }
+        }
+
+        /* --- Bookmarked Interactivity States --- */
+        .workspace-container.is-bookmarked .left-panel,
+        .workspace-container.is-bookmarked .right-panel {
+            background-color: #fafafa;
+        }
+        .bookmark-status-banner {
+            display: none;
+            background: var(--pure-black);
+            color: var(--pure-white);
+            font-weight: 700;
+            font-size: 0.8rem;
+            letter-spacing: 0.05em;
+            padding: 4px 10px;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+        .workspace-container.is-bookmarked .bookmark-status-banner {
+            display: inline-block;
+        }
+
+        /* --- Typography Settings --- */
+        .sat-passage {
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: 1.25rem;
+            line-height: 1.85;
+            color: var(--off-black);
+            padding-right: 5px;
+        }
+        .question-text {
+            font-size: 1.3rem;
+            font-weight: 700;
+            line-height: 1.55;
+            color: var(--pure-black);
+            letter-spacing: -0.01em;
+        }
+
+        /* --- Custom Multiple Choice Components --- */
+        .option-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+            width: 100%;
+        }
+        .bb-option-card {
+            flex-grow: 1;
+            background-color: var(--pure-white);
+            border: 2px solid var(--light-border);
+            border-radius: 8px;
+            padding: 14px 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            transition: all 0.15s ease;
+        }
+        .bb-option-card:hover {
+            background-color: var(--active-bg);
+            border-color: var(--dark-gray);
+        }
+        .bb-option-card.selected {
+            border-color: var(--pure-black) !important;
+            background-color: var(--pure-black) !important;
+            color: var(--pure-white) !important;
+        }
+        .bb-option-card.selected .letter-badge {
+            background-color: var(--pure-white);
+            color: var(--pure-black);
+            border-color: var(--pure-white);
+        }
+        .letter-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+            border: 2px solid var(--pure-black);
+            border-radius: 50%;
+            margin-right: 14px;
+            font-weight: 800;
+            font-size: 0.95rem;
+            background-color: var(--pure-white);
+            color: var(--pure-black);
+            flex-shrink: 0;
+        }
+        .option-text-span {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        .bb-option-card.struck {
+            text-decoration: line-through;
+            opacity: 0.25;
+            background-color: var(--pure-white) !important;
+            border-color: var(--light-border) !important;
+            pointer-events: none;
+        }
+        .bb-strike-btn {
+            background: none;
+            border: 2px dashed var(--light-border);
+            color: var(--dark-gray);
+            width: 42px;
+            height: 42px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: all 0.15s;
+            font-size: 1.15rem;
+        }
+        .bb-strike-btn:hover, .bb-strike-btn.active {
+            border-style: solid;
+            border-color: var(--pure-black);
+            color: var(--pure-white);
+            background-color: var(--pure-black);
+        }
+
+        /* --- Pinned Bottom Sticky Footer Navigation --- */
+        .bb-footer {
+            background-color: var(--pure-white);
+            border-top: 2px solid var(--pure-black);
+            padding: 14px 24px;
+            flex-shrink: 0;
+            height: 70px;
+            z-index: 1020;
+        }
+        .question-nav-trigger {
+            background-color: var(--pure-black);
+            color: var(--pure-white);
+            border: none;
+            border-radius: 6px;
+            padding: 8px 24px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+        }
+        .btn-navigation {
+            border: 2px solid var(--pure-black);
+            background: var(--pure-white);
+            color: var(--pure-black);
+            font-weight: 700;
+            font-size: 0.95rem;
+            padding: 8px 20px;
+            border-radius: 6px;
+            transition: all 0.15s;
+        }
+        .btn-navigation:hover:not(:disabled) {
+            background-color: var(--pure-black);
+            color: var(--pure-white);
+        }
+
+        /* --- Review Map Popover Map Layout --- */
+        .grid-popover {
+            width: 320px;
+            padding: 18px;
+            max-height: 350px;
+            overflow-y: auto;
+        }
+        .map-grid-item {
+            width: 40px;
+            height: 40px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--pure-black);
+            border-radius: 6px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            color: var(--pure-black);
+            background-color: var(--pure-white);
+            position: relative;
+        }
+        .map-grid-item.active {
+            background-color: var(--active-bg);
+            box-shadow: 0 0 0 3px var(--pure-black);
+        }
+        .map-grid-item.answered {
+            background-color: var(--pure-black);
+            color: var(--pure-white);
+        }
+        .map-grid-item .flag-indicator {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            font-size: 0.8rem;
+            color: var(--pure-black);
+            background: var(--pure-white);
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="bb-header d-flex flex-column flex-sm-row justify-content-sm-between align-items-start align-items-sm-center gap-3 shadow-sm">
+        <div>
+            <div class="bb-module-title">DIGITAL SAT TESTING ENGINE</div>
+            <div class="bb-live-clock-panel" id="liveHeaderTimestamp">
+                Locating real-time workspace environments...
+            </div>
+        </div>
+        
+        <div class="d-flex align-items-center justify-content-between w-100 w-sm-auto gap-3">
+            <div class="d-flex gap-2" id="topbarTools">
+                <button class="bb-tool-btn d-none" id="toolFlag" onclick="triggerFlag()">
+                    <i class="bi bi-bookmark me-1"></i> Bookmark
+                </button>
+            </div>
+            <div class="d-flex align-items-center gap-2 d-none" id="topbarStats">
+                <span class="bb-timer-container" id="timer">15:00</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="workspace-container" id="workspaceContainer">
+        
+        <div id="instructionsCard">
+            <div class="row justify-content-center mx-0 mt-2">
+                <div class="col-12 col-xl-7">
+                    <div class="card border-2 border-dark shadow-sm p-4 p-md-5 bg-white rounded-3">
+                        <div class="text-center mb-4">
+                            <i class="bi bi-shield-check text-dark" style="font-size: 3rem;"></i>
+                            <h3 class="fw-bold mt-2">Vocabulary Practice Setup</h3>
+                            <p class="text-muted small fw-bold tracking-wide">BLUEBOOK PROTOCOL ENGINE MODULE ALIGNMENT</p>
+                        </div>
+                        
+                        <div class="border border-2 border-dark p-4 rounded mb-4">
+                            <div class="d-flex gap-3">
+                                <i class="bi bi-info-circle-fill fs-4 text-dark"></i>
+                                <div class="small">
+                                    <strong class="d-block text-dark fs-6 mb-1">Context Isolation Protocol</strong>
+                                    <span class="text-secondary d-block mt-1">All platform questions are synthetically generated to optimize high-volume adaptive retrieval.</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-light p-4 rounded border border-2 mb-4">
+                            <h6 class="fw-bold text-dark mb-2"><i class="bi bi-journal-text me-2"></i>Required Core Lexicon Document</h6>
+                            <p class="text-secondary small mb-3">Ensure you complete a formal review of the assigned ledger structures before beginning the countdown sequence matrix:</p>
+                            <a href="https://docs.google.com/document/d/1QgrWrF1drCupM0f-rYdpb82Orxr929NvWneuMcPMZ4A/edit?tab=t.0" target="_blank" class="btn btn-sm btn-dark fw-bold px-4 py-2.5">
+                                <i class="bi bi-box-arrow-up-right me-2"></i> Open Today's Vocab Sheet Document
+                            </a>
+                        </div>
+
+                        <div class="text-secondary mb-4 small">
+                            <h6 class="fw-bold text-dark mb-2"><i class="bi bi-gear-fill me-2"></i>Testing Parameters:</h6>
+                            <ul class="ps-3 mt-2">
+                                <li class="mb-1"><strong>Volume:</strong> <span id="paramVolumeCount">18</span> unique contextual reading matrix tasks.</li>
+                                <li class="mb-1"><strong>Timeline:</strong> 15 minutes absolute countdown constraint.</li>
+                                <li class="mb-1"><strong>Controls:</strong> Select choices to register responses. Toggle <i class="bi bi-bookmark"></i> to flag questions instantly.</li>
+                            </ul>
+                        </div>
+
+                        <div class="text-center pt-2">
+                            <button class="btn btn-dark btn-lg w-100 py-3 fw-bold fs-6 shadow-sm" onclick="startTest()">
+                                Start Practice Test Session <i class="bi bi-arrow-right-short ms-1"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <main id="quiz" class="d-none w-100 h-100 d-flex flex-column flex-lg-row">
+            </main>
+        
+    </div>
+
+    <footer class="bb-footer d-none" id="quizFooter">
+        <div class="container-fluid h-100 d-flex justify-content-between align-items-center">
+            
+            <button class="btn-navigation" id="prevBtn" onclick="prevQ()">
+                <i class="bi bi-chevron-left me-1"></i> Back
+            </button>
+            
+            <div class="dropup">
+                <button class="question-nav-trigger d-flex align-items-center gap-2" type="button" id="gridMapDropdown" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                    <span id="footerProgress" class="fw-bold">Question 1 of 18</span>
+                    <i class="bi bi-chevron-up"></i>
+                </button>
+                <div class="dropdown-menu dropdown-menu-end shadow-lg border border-2 border-dark p-0 rounded-3" aria-labelledby="gridMapDropdown">
+                    <div class="grid-popover">
+                        <h6 class="fw-bold mb-3 text-muted border-bottom pb-2 tracking-wide uppercase small">Review Assessment Map</h6>
+                        <div class="d-flex flex-wrap gap-2" id="navGridMapContainer">
+                            </div>
+                        <div class="border-top mt-4 pt-3 text-center">
+                            <button class="btn btn-dark w-100 fw-bold py-2.5" onclick="finishQuiz()">
+                                <i class="bi bi-check2-circle me-1"></i> Submit Section
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn-navigation" id="nextBtn" onclick="nextQ()">
+                Next <i class="bi bi-chevron-right ms-1"></i>
+            </button>
+            
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+// --- CORE REPOSITORY STORAGE LAYER ---
+const masterQuestionBank = {
+   abduct: [
+    {
+      passage: "Federal investigators alleged that the criminal organization planned to ______ several foreign journalists in order to pressure the government into meeting its demands.",
+      q: "Which choice completes the text with the most logical and precise word?",
+      options: ["escort", "abduct", "release", "summon"],
+      answer: 1,
+      explanation: "The organization intends to forcibly take journalists as leverage, which means to abduct them."
+    },
+    {
+      passage: "The novel's central conflict begins when pirates ______ the governor's daughter and transport her to a remote island.",
+      q: "Which choice completes the text with the most logical and precise word?",
+      options: ["abduct", "greet", "appoint", "protect"],
+      answer: 0,
+      explanation: "Taking someone away by force is the definition of abduct."
+    },
+    {
+      passage: "Authorities issued an international alert after evidence suggested that traffickers intended to ______ vulnerable children across national borders.",
+      q: "Which choice completes the text with the most logical and precise word?",
+      options: ["educate", "abduct", "reward", "question"],
+      answer: 1,
+      explanation: "Traffickers forcibly taking children fits the meaning of abduct."
+    },
+    {
+      passage: "Unlike the witness, who voluntarily accompanied detectives to the station, the victim was ______ against his will.",
+      q: "Which choice best completes the text?",
+      options: ["celebrated", "abducted", "promoted", "consulted"],
+      answer: 1,
+      explanation: "The contrast with voluntarily indicates that the victim was forcibly taken away."
+    },
+    {
+      passage: "The science-fiction film depicts extraterrestrials who allegedly ______ farmers from isolated rural communities for experimentation.",
+      q: "Which choice completes the text with the most logical and precise word?",
+      options: ["abduct", "hire", "encourage", "observe"],
+      answer: 0,
+      explanation: "The context of aliens taking people away by force matches abduct."
+    },
+    {
+      passage: "Historians debate whether the rebels intended to ______ the prince or merely persuade him to support their cause.",
+      q: "Which choice completes the text with the most logical and precise word?",
+      options: ["abduct", "praise", "elect", "inform"],
+      answer: 0,
+      explanation: "The sentence contrasts persuasion with forcibly taking the prince."
+    },
+    {
+      passage: "Security officials strengthened protections after receiving intelligence that extremists planned to ______ several diplomats attending the summit.",
+      q: "Which choice completes the text with the most logical and precise word?",
+      options: ["abduct", "recognize", "interview", "invite"],
+      answer: 0,
+      explanation: "The threat involves kidnapping diplomats, which means abducting them."
+    },
+    {
+      passage: "The detective quickly dismissed the theory that the suspect intended to ______ the child because surveillance footage showed the child leaving willingly with a parent.",
+      q: "Which choice completes the text with the most logical and precise word?",
+      options: ["abduct", "comfort", "escort", "teach"],
+      answer: 0,
+      explanation: "Abduction requires unlawful or forcible taking; the footage disproves that possibility."
+    },
+    {
+      passage: "According to the indictment, the defendants attempted to ______ a technology executive and demand millions of dollars in ransom.",
+      q: "Which choice completes the text with the most logical and precise word?",
+      options: ["appoint", "abduct", "employ", "consult"],
+      answer: 1,
+      explanation: "Kidnapping someone for ransom is an act of abduction."
+    },
+    {
+      passage: "Although the rumor claimed that criminals had ______ the researcher, investigators later confirmed that she had simply traveled abroad without informing her colleagues.",
+      q: "Which choice completes the text with the most logical and precise word?",
+      options: ["abducted", "hired", "greeted", "advised"],
+      answer: 0,
+      explanation: "The rumor concerned kidnapping, making abducted the correct choice."
+    }
+  ],
+  aberration: [
+{
+    passage: "For nearly fifty years, the region experienced mild winters. Therefore, last year's record-breaking blizzard was considered an ______ by climate researchers.",
+    q: "Which choice completes the text with the most logical and precise word?",
+    options: ["aberration", "tradition", "certainty", "requirement"],
+    answer: 0,
+    explanation: "A record-breaking event that differs from the norm is an aberration."
+},
+{
+    passage: "The student's single failing grade stood out as an ______ in an otherwise outstanding academic record.",
+    q: "Which choice completes the text with the most logical and precise word?",
+    options: ["achievement", "aberration", "routine", "specialty"],
+    answer: 1,
+    explanation: "The failing grade is unusual compared with the student's normal performance."
+},
+{
+    passage: "Astronomers initially believed the strange signal was an ______ because it appeared only once and never reappeared.",
+    q: "Which choice completes the text with the most logical and precise word?",
+    options: ["aberration", "prediction", "pattern", "law"],
+    answer: 0,
+    explanation: "A one-time unusual occurrence is an aberration."
+},
+{
+    passage: "Because the company's profits had increased steadily for decades, the sudden quarterly loss was viewed as an ______ rather than a long-term trend.",
+    q: "Which choice completes the text with the most logical and precise word?",
+    options: ["expectation", "aberration", "guarantee", "policy"],
+    answer: 1,
+    explanation: "The loss is unusual compared with normal performance."
+},
+{
+    passage: "Historians argue that the brief period of peace was an ______ in a century otherwise dominated by conflict.",
+    q: "Which choice completes the text with the most logical and precise word?",
+    options: ["aberration", "foundation", "tradition", "custom"],
+    answer: 0,
+    explanation: "The peace differed from the usual pattern of conflict."
+},
+{
+    passage: "Scientists initially dismissed the reading as an ______ because it differed dramatically from every previous measurement.",
+    q: "Which choice completes the text with the most logical and precise word?",
+    options: ["aberration", "confirmation", "standard", "benchmark"],
+    answer: 0,
+    explanation: "An unusual result that departs from expectations is an aberration."
+},
+{
+    passage: "The athlete's poor performance was considered an ______ since she had consistently broken records throughout the season.",
+    q: "Which choice completes the text with the most logical and precise word?",
+    options: ["trend", "aberration", "specialty", "talent"],
+    answer: 1,
+    explanation: "One poor result among many excellent ones is an aberration."
+},
+{
+    passage: "Researchers concluded that the unusual migration route represented an ______ rather than evidence of permanent behavioral change.",
+    q: "Which choice completes the text with the most logical and precise word?",
+    options: ["aberration", "necessity", "strategy", "tradition"],
+    answer: 0,
+    explanation: "A temporary departure from normal behavior is an aberration."
+},
+{
+    passage: "The editor described the typo as an ______ in a publication known for meticulous accuracy.",
+    q: "Which choice completes the text with the most logical and precise word?",
+    options: ["strength", "aberration", "feature", "advantage"],
+    answer: 1,
+    explanation: "A rare mistake is an aberration."
+},
+{
+    passage: "Although many investors panicked, analysts insisted that the market decline was merely an ______.",
+    q: "Which choice completes the text with the most logical and precise word?",
+    options: ["aberration", "certainty", "rule", "pattern"],
+    answer: 0,
+    explanation: "The decline is portrayed as an unusual exception."
+}
+],
+abet: [
+{
+    passage: "By supplying counterfeit documents, the employee chose to ______ the criminal enterprise.",
+    q: "Which choice completes the text with the most logical and precise word?",
+    options: ["expose", "abet", "prevent", "criticize"],
+    answer: 1,
+    explanation: "Helping a criminal activity means to abet it."
+},
+{
+    passage: "The prosecutor argued that the defendant did not commit the theft but did ______ those who carried it out.",
+    q: "Which choice completes the text with the most logical and precise word?",
+    options: ["condemn", "abet", "ignore", "avoid"],
+    answer: 1,
+    explanation: "The defendant assisted the thieves."
+},
+{
+    passage: "Providing confidential access codes would effectively ______ the hackers' efforts.",
+    q: "Which choice completes the text with the most logical and precise word?",
+    options: ["hinder", "abet", "question", "examine"],
+    answer: 1,
+    explanation: "The codes would help the hackers."
+},
+{
+    passage: "The senator denied allegations that she had attempted to ______ corruption within the agency.",
+    q: "Which choice completes the text with the most logical and precise word?",
+    options: ["abet", "oppose", "investigate", "reveal"],
+    answer: 0,
+    explanation: "To aid wrongdoing is to abet it."
+},
+{
+    passage: "Anyone who knowingly provides transportation for smugglers may be charged with ______ their activities.",
+    q: "Which choice completes the text with the most logical and precise word?",
+    options: ["celebrating", "abetting", "studying", "questioning"],
+    answer: 1,
+    explanation: "Helping smugglers amounts to abetting."
+},
+{
+    passage: "The witness claimed she had no intention of ______ the fraud and was unaware of the scheme.",
+    q: "Which choice completes the text with the most logical and precise word?",
+    options: ["abetting", "exposing", "preventing", "challenging"],
+    answer: 0,
+    explanation: "Abetting means helping the fraud."
+},
+{
+    passage: "By remaining silent despite knowing the plan, some argued that he had indirectly ______ the offense.",
+    q: "Which choice completes the text with the most logical and precise word?",
+    options: ["abetted", "solved", "reported", "ended"],
+    answer: 0,
+    explanation: "The context suggests assisting wrongdoing."
+},
+{
+    passage: "The investigation focused on whether executives had ______ illegal price-fixing practices.",
+    q: "Which choice completes the text with the most logical and precise word?",
+    options: ["abetted", "condemned", "rejected", "eliminated"],
+    answer: 0,
+    explanation: "The executives may have helped the illegal practice."
+},
+{
+    passage: "Journalists uncovered evidence suggesting several officials had ______ the cover-up.",
+    q: "Which choice completes the text with the most logical and precise word?",
+    options: ["abetted", "prevented", "challenged", "criticized"],
+    answer: 0,
+    explanation: "They assisted the cover-up."
+},
+{
+    passage: "The ethics committee warned employees not to ______ misconduct by ignoring obvious violations.",
+    q: "Which choice completes the text with the most logical and precise word?",
+    options: ["abet", "investigate", "document", "eliminate"],
+    answer: 0,
+    explanation: "Ignoring violations can help wrongdoing continue."
+}
+],
+wizened: [
+{
+    passage: "After decades of working under the desert sun, the shepherd's face appeared deeply ______.",
+    q: "Which choice completes the text with the most logical and precise word?",
+    options: ["youthful", "radiant", "wizened", "vigorous"],
+    answer: 2,
+    explanation: "The context suggests a weathered, wrinkled appearance."
+},
+{
+    passage: "The old sailor's ______ features reflected years spent battling harsh ocean winds.",
+    q: "Which choice completes the text with the most logical and precise word?",
+    options: ["smooth", "wizened", "athletic", "cheerful"],
+    answer: 1,
+    explanation: "A wizened face is wrinkled and shrunken."
+},
+{
+    passage: "Although physically small and somewhat ______, the farmer remained remarkably energetic.",
+    q: "Which choice completes the text with the most logical and precise word?",
+    options: ["wizened", "athletic", "towering", "robust"],
+    answer: 0,
+    explanation: "The description suggests age-related shrinkage."
+},
+{
+    passage: "The artist captured the village elder's ______ expression with extraordinary detail.",
+    q: "Which choice completes the text with the most logical and precise word?",
+    options: ["wizened", "juvenile", "playful", "fresh"],
+    answer: 0,
+    explanation: "The elder is portrayed as aged and wrinkled."
+},
+{
+    passage: "Years of hardship had left him looking thin and ______.",
+    q: "Which choice completes the text with the most logical and precise word?",
+    options: ["prosperous", "wizened", "glamorous", "athletic"],
+    answer: 1,
+    explanation: "Thin and shriveled suggests wizened."
+},
+{
+    passage: "The novel describes a ______ traveler whose lined face hinted at countless adventures.",
+    q: "Which choice completes the text with the most logical and precise word?",
+    options: ["wizened", "carefree", "youthful", "energetic"],
+    answer: 0,
+    explanation: "Lined facial features indicate a wizened appearance."
+},
+{
+    passage: "The botanist observed that the neglected plant appeared dry and almost ______.",
+    q: "Which choice completes the text with the most logical and precise word?",
+    options: ["luxuriant", "thriving", "wizened", "vibrant"],
+    answer: 2,
+    explanation: "Wizened can also describe something shriveled."
+},
+{
+    passage: "Photographs revealed the explorer's increasingly ______ appearance after months in harsh conditions.",
+    q: "Which choice completes the text with the most logical and precise word?",
+    options: ["wizened", "prosperous", "polished", "youthful"],
+    answer: 0,
+    explanation: "The conditions caused a weathered look."
+},
+{
+    passage: "The character is introduced as a ______ old merchant with deeply wrinkled skin.",
+    q: "Which choice completes the text with the most logical and precise word?",
+    options: ["vigorous", "smooth-faced", "wizened", "carefree"],
+    answer: 2,
+    explanation: "Deep wrinkles suggest a wizened appearance."
+},
+{
+    passage: "Though somewhat ______ in appearance, the scientist possessed a brilliant and active mind.",
+    q: "Which choice completes the text with the most logical and precise word?",
+    options: ["wizened", "youthful", "athletic", "glamorous"],
+    answer: 0,
+    explanation: "The word describes an aged, wrinkled appearance."
+}
+],
+wrath: [
+{
+    passage: "The corporation faced public ______ after reports revealed that it had knowingly polluted local waterways.",
+    q: "Which choice completes the text with the most logical and precise word?",
+    options: ["gratitude", "wrath", "curiosity", "approval"],
+    answer: 1,
+    explanation: "The public reacted with intense anger, which is wrath."
+},
+{
+    passage: "According to the myth, those who disobeyed the sea god risked incurring his ______.",
+    q: "Which choice completes the text with the most logical and precise word?",
+    options: ["wrath", "admiration", "sympathy", "respect"],
+    answer: 0,
+    explanation: "A god's severe anger is described as wrath."
+},
+{
+    passage: "The mayor's decision to raise taxes unexpectedly drew the ______ of many residents.",
+    q: "Which choice completes the text with the most logical and precise word?",
+    options: ["approval", "wrath", "support", "praise"],
+    answer: 1,
+    explanation: "Residents responded with anger and outrage."
+},
+{
+    passage: "Historians note that the ruler's ______ often resulted in harsh punishments for even minor offenses.",
+    q: "Which choice completes the text with the most logical and precise word?",
+    options: ["patience", "generosity", "wrath", "wisdom"],
+    answer: 2,
+    explanation: "Wrath refers to intense anger, often accompanied by punishment."
+},
+{
+    passage: "The whistleblower was prepared for criticism but not for the full ______ of the officials whose misconduct she exposed.",
+    q: "Which choice completes the text with the most logical and precise word?",
+    options: ["wrath", "gratitude", "encouragement", "curiosity"],
+    answer: 0,
+    explanation: "The officials reacted with furious anger."
+},
+{
+    passage: "The king's ______ was so feared that few dared challenge his decisions publicly.",
+    q: "Which choice completes the text with the most logical and precise word?",
+    options: ["charm", "wrath", "humor", "kindness"],
+    answer: 1,
+    explanation: "The sentence refers to the king's fearsome anger."
+},
+{
+    passage: "After the scandal became public, executives quickly attempted to avoid the ______ of shareholders.",
+    q: "Which choice completes the text with the most logical and precise word?",
+    options: ["celebration", "wrath", "admiration", "gratitude"],
+    answer: 1,
+    explanation: "Shareholders would likely react with anger."
+},
+{
+    passage: "The ancient text warned that greed and dishonesty would provoke divine ______.",
+    q: "Which choice completes the text with the most logical and precise word?",
+    options: ["wrath", "approval", "curiosity", "amusement"],
+    answer: 0,
+    explanation: "Divine punishment is often associated with divine wrath."
+},
+{
+    passage: "The athlete's controversial remarks unleashed the ______ of fans across the country.",
+    q: "Which choice completes the text with the most logical and precise word?",
+    options: ["wrath", "gratitude", "support", "admiration"],
+    answer: 0,
+    explanation: "Fans reacted with outrage and anger."
+},
+{
+    passage: "Fearful of her supervisor's ______, the employee carefully verified every detail before submitting the report.",
+    q: "Which choice completes the text with the most logical and precise word?",
+    options: ["wrath", "friendship", "approval", "encouragement"],
+    answer: 0,
+    explanation: "The employee feared severe anger from the supervisor."
+}
+],
+yoke: [
+{
+    passage: "Many economists ______ technological innovation to economic growth, arguing that the two are closely connected.",
+    q: "Which choice completes the text with the most logical and precise word?",
+    options: ["separate", "ignore", "yoke", "oppose"],
+    answer: 2,
+    explanation: "To yoke means to join or link closely together."
+},
+{
+    passage: "The study sought to ______ environmental policy with scientific evidence rather than political ideology.",
+    q: "Which choice completes the text with the most logical and precise word?",
+    options: ["yoke", "divide", "detach", "exclude"],
+    answer: 0,
+    explanation: "The sentence describes linking policy with science."
+},
+{
+    passage: "In the author's view, economic prosperity cannot be ______ from social stability.",
+    q: "Which choice best completes the text?",
+    options: ["yoked", "separated", "hidden", "protected"],
+    answer: 0,
+    explanation: "The author argues the two concepts are closely linked."
+},
+{
+    passage: "The reform movement attempted to ______ educational opportunity and economic mobility.",
+    q: "Which choice completes the text with the most logical and precise word?",
+    options: ["disconnect", "yoke", "isolate", "ignore"],
+    answer: 1,
+    explanation: "The movement sought to connect the two ideas."
+},
+{
+    passage: "Throughout history, advances in transportation have often been ______ to increases in trade.",
+    q: "Which choice completes the text with the most logical and precise word?",
+    options: ["opposed", "yoked", "hidden", "separated"],
+    answer: 1,
+    explanation: "The sentence indicates a strong connection between the two."
+},
+{
+    passage: "The philosopher argued that freedom should not be ______ to material wealth.",
+    q: "Which choice completes the text with the most logical and precise word?",
+    options: ["yoked", "removed", "hidden", "ignored"],
+    answer: 0,
+    explanation: "To yoke something is to tie or link it to something else."
+},
+{
+    passage: "Researchers have long ______ population growth and resource consumption in their predictive models.",
+    q: "Which choice completes the text with the most logical and precise word?",
+    options: ["yoked", "dismissed", "avoided", "eliminated"],
+    answer: 0,
+    explanation: "The models connect the two variables."
+},
+{
+    passage: "The proposal would effectively ______ employee compensation to company performance.",
+    q: "Which choice completes the text with the most logical and precise word?",
+    options: ["detach", "separate", "yoke", "prevent"],
+    answer: 2,
+    explanation: "Compensation would become linked to performance."
+},
+{
+    passage: "The historian noted that political power was often ______ to military strength in ancient empires.",
+    q: "Which choice completes the text with the most logical and precise word?",
+    options: ["yoked", "isolated", "distinguished", "hidden"],
+    answer: 0,
+    explanation: "Political power and military strength were closely connected."
+},
+{
+    passage: "The engineer sought to ______ efficiency with sustainability rather than treating them as competing goals.",
+    q: "Which choice completes the text with the most logical and precise word?",
+    options: ["oppose", "yoke", "ignore", "divide"],
+    answer: 1,
+    explanation: "The engineer wanted to link efficiency and sustainability together."
+}
+]
+};
+
+// --- RUNTIME LIVE CYCLE ARRAYS ---
+let questions = []; 
+let current = 0;
+let userAnswers = [];
+let bookmarkedQuestions = [];
+let struckOptions = [];
+let totalTime = 900; 
+let countdownInterval;
+
+function initLiveClockClockPanel() {
+    function updateClockTime() {
+        const timestampElement = document.getElementById("liveHeaderTimestamp");
+        const now = new Date();
+        const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        
+        const dateOptions = { year: 'numeric', month: 'short', day: 'numeric' };
+        const formattedDate = now.toLocaleDateString('en-US', dateOptions);
+        
+        let hours = now.getHours();
+        let minutes = now.getMinutes();
+        let seconds = now.getSeconds();
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        
+        hours = hours % 12;
+        hours = hours ? hours : 12;
+        minutes = minutes < 10 ? '0' + minutes : minutes;
+        seconds = seconds < 10 ? '0' + seconds : seconds;
+        
+        timestampElement.innerHTML = `<i class="bi bi-calendar3 me-2"></i> ${days[now.getDay()]}, ${formattedDate} &bull; ${hours}:${minutes}:${seconds} ${ampm}`;
+    }
+    updateClockTime();
+    setInterval(updateClockTime, 1000);
+}
+
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
+
+function generateDynamicTestSession() {
+    let completePool = [];
+    for (const category in masterQuestionBank) {
+        masterQuestionBank[category].forEach(item => completePool.push({...item}));
+    }
+    // Shuffle all gathered unique questions randomly
+    shuffleArray(completePool);
+    
+    // Select exactly 18 unique questions from the pool of 60 items
+    return completePool.slice(0, 18);
+}
+
+function updateInstructionParameters() {
+    let uniqueCount = 0;
+    for (const category in masterQuestionBank) {
+        uniqueCount += masterQuestionBank[category].length;
+    }
+    const displayCount = Math.min(18, uniqueCount);
+    document.getElementById("paramVolumeCount").innerText = displayCount;
+}
+
+function startTest() {
+    questions = generateDynamicTestSession();
+    current = 0;
+    userAnswers = Array(questions.length).fill(null);
+    bookmarkedQuestions = Array(questions.length).fill(false);
+    struckOptions = Array(questions.length).fill(null).map(() => Array(4).fill(false));
+    totalTime = 900;
+
+    // Apply active exam modifier class to body to configure independent layout panels
+    document.body.classList.add("quiz-active");
+
+    document.getElementById("instructionsCard").classList.add("d-none");
+    document.getElementById("quiz").classList.remove("d-none");
+    document.getElementById("quizFooter").classList.remove("d-none");
+    document.getElementById("topbarStats").classList.remove("d-none");
+    document.getElementById("toolFlag").classList.remove("d-none");
+
+    clearInterval(countdownInterval);
+    initTimer();
+    loadQuestion();
+}
+
+function initTimer() {
+    const timerElement = document.getElementById("timer");
+    countdownInterval = setInterval(() => {
+        let minutes = Math.floor(totalTime / 60);
+        let seconds = totalTime % 60;
+        timerElement.innerText = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        if (totalTime <= 0) {
+            clearInterval(countdownInterval);
+            finishQuiz();
+        }
+        totalTime--;
+    }, 1000);
+}
+
+function loadQuestion() {
+    let q = questions[current];
+    document.getElementById("footerProgress").innerText = `Question ${current + 1} of ${questions.length}`;
+    
+    const workspaceContainer = document.getElementById("workspaceContainer");
+    const flagBtn = document.getElementById("toolFlag");
+    
+    if(bookmarkedQuestions[current]) {
+        flagBtn.innerHTML = `<i class="bi bi-bookmark-fill me-1"></i> Bookmarked`;
+        flagBtn.className = "bb-tool-btn flagged-active";
+        workspaceContainer.classList.add("is-bookmarked");
+    } else {
+        flagBtn.innerHTML = `<i class="bi bi-bookmark me-1"></i> Bookmark`;
+        flagBtn.className = "bb-tool-btn";
+        workspaceContainer.classList.remove("is-bookmarked");
+    }
+
+    let html = `
+        <div class="left-panel p-4 p-md-5">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="badge bg-dark text-white px-3 py-1.5 fw-bold small tracking-wide">PASSAGE FRAME</span>
+                <span class="bookmark-status-banner"><i class="bi bi-bookmark-fill me-1"></i> Flagged Item</span>
+            </div>
+            <div class="sat-passage">${q.passage}</div>
+        </div>
+        
+        <div class="right-panel p-4 p-md-5 bg-white">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="badge bg-light text-dark border border-2 border-dark px-3 py-1.5 fw-bold small tracking-wide">QUESTION PARAMETERS</span>
+                <div style="cursor: pointer;" onclick="triggerFlag()">
+                    <i class="bi ${bookmarkedQuestions[current] ? 'bi-bookmark-fill text-dark' : 'bi-bookmark text-muted'}" style="font-size: 1.5rem;"></i>
+                </div>
+            </div>
+            <div class="question-text mb-4">${current + 1}. ${q.q}</div>
+            <div class="d-flex flex-column gap-1">`;
+
+    q.options.forEach((opt, i) => {
+        let isSelected = (userAnswers[current] === i) ? 'selected' : '';
+        let isStruck = struckOptions[current][i] ? 'struck' : '';
+        let strikeActive = struckOptions[current][i] ? 'active' : '';
+        let letter = String.fromCharCode(65 + i);
+
+        html += `
+            <div class="option-wrapper">
+                <div class="bb-option-card ${isSelected} ${isStruck}" onclick="selectOption(${i})">
+                    <span class="letter-badge">${letter}</span>
+                    <span class="option-text-span">${opt}</span>
+                </div>
+                <button class="bb-strike-btn ${strikeActive}" onclick="toggleStrike(${i}, event)" title="Strike Option">
+                    <i class="bi bi-type-strikethrough"></i>
+                </button>
+            </div>`;
+    });
+
+    html += `</div></div>`;
+    document.getElementById("quiz").innerHTML = html;
+    
+    document.getElementById("prevBtn").disabled = (current === 0);
+    document.getElementById("nextBtn").disabled = (current === questions.length - 1);
+    
+    // Smooth reset panel scrolls to top upon dynamic load updates
+    const lp = document.querySelector('.left-panel');
+    const rp = document.querySelector('.right-panel');
+    if (lp) lp.scrollTop = 0;
+    if (rp) rp.scrollTop = 0;
+
+    buildNavGridMap();
+}
+
+function triggerFlag() {
+    bookmarkedQuestions[current] = !bookmarkedQuestions[current];
+    loadQuestion();
+}
+
+function toggleStrike(optionIndex, event) {
+    event.stopPropagation();
+    struckOptions[current][optionIndex] = !struckOptions[current][optionIndex];
+    if (struckOptions[current][optionIndex] && userAnswers[current] === optionIndex) {
+        userAnswers[current] = null;
+    }
+    loadQuestion();
+}
+
+function selectOption(i) {
+    if (struckOptions[current][i]) return;
+    userAnswers[current] = i;
+    loadQuestion();
+}
+
+function buildNavGridMap() {
+    const container = document.getElementById("navGridMapContainer");
+    container.innerHTML = "";
+    
+    questions.forEach((_, idx) => {
+        let statusClass = "";
+        if (current === idx) statusClass += " active";
+        if (userAnswers[idx] !== null) statusClass += " answered";
+        
+        let bookmarkIcon = bookmarkedQuestions[idx] ? `<i class="bi bi-bookmark-fill flag-indicator"></i>` : "";
+        
+        container.innerHTML += `
+            <div class="map-grid-item ${statusClass}" onclick="jumpToQuestion(${idx})">
+                ${idx + 1}
+                ${bookmarkIcon}
+            </div>`;
+    });
+}
+
+function jumpToQuestion(index) {
+    current = index;
+    loadQuestion();
+}
+
+function nextQ() {
+    if (current < questions.length - 1) {
+        current++;
+        loadQuestion();
+    }
+}
+
+function prevQ() {
+    if (current > 0) {
+        current--;
+        loadQuestion();
+    }
+}
+
+function finishQuiz() {
+    clearInterval(countdownInterval);
+    document.body.classList.remove("quiz-active"); // Restores general document flow for results review
+
+    document.getElementById("topbarStats").classList.add("d-none");
+    document.getElementById("toolFlag").classList.add("d-none");
+    document.getElementById("quizFooter").classList.add("d-none");
+    
+    const workspace = document.getElementById("workspaceContainer");
+    workspace.classList.remove("is-bookmarked");
+
+    let scoreCount = 0;
+    let reviewHTML = `
+        <div class="w-100 p-3 p-md-5">
+            <div class="row justify-content-center mx-0">
+                <div class="col-12 col-xl-9">
+                    <div class="card border border-2 border-dark shadow-sm p-4 bg-white rounded-3 mb-4">
+                        <h4 class="fw-bold text-center mb-3">SAT® Assessment Performance Evaluation</h4>
+                        <div class="row g-3 text-center" id="scoreMetricRow"></div>
+                    </div>`;
+
+    questions.forEach((q, i) => {
+        let isCorrect = (userAnswers[i] === q.answer);
+        if(isCorrect) scoreCount++;
+        
+        let statusBadge = isCorrect ? 
+            `<span class="badge bg-dark text-white border border-2 border-dark px-3 py-1.5 fw-bold"><i class="bi bi-check-circle-fill me-1"></i> CORRECT</span>` : 
+            `<span class="badge bg-white text-dark border border-2 border-dark px-3 py-1.5 fw-bold"><i class="bi bi-x-circle-fill me-1"></i> INCORRECT</span>`;
+
+        reviewHTML += `
+            <div class="card border border-2 border-dark shadow-sm rounded-3 p-4 bg-white mb-4">
+                <div class="d-flex justify-content-between align-items-center border-bottom border-2 pb-2 mb-3">
+                    <h6 class="fw-bold m-0 text-dark">Question Sequence Matrix ${i + 1}</h6>
+                    ${statusBadge}
+                </div>
+                <div class="sat-passage p-3 bg-light rounded text-muted mb-3 border-start border-4 border-dark fs-6">
+                    ${q.passage}
+                </div>
+                <p class="fw-bold text-dark fs-5 mb-2">${q.q}</p>
+                <div class="fs-6 mb-3 p-2.5 border rounded">
+                    <div class="text-secondary"><strong>Selected Student Profile Asset:</strong> <span class="fw-bold text-dark">${userAnswers[i] !== null ? q.options[userAnswers[i]] : 'None Registered'}</span></div>
+                    <div class="text-dark mt-1"><strong>Calibrated Answer Target Key:</strong> <span class="fw-bold">${q.options[q.answer]}</span></div>
+                </div>
+                <div class="p-3 bg-light rounded text-secondary border small fs-6">
+                    <strong>Analytical Context Rationale:</strong> ${q.explanation}
+                </div>
+            </div>`;
+    });
+
+    reviewHTML += `
+                <div class="text-center pt-2">
+                    <a href="index.html" class="btn btn-dark btn-lg px-5 py-2.5 rounded fs-6 fw-bold"><i class="bi bi-house-door me-2"></i> Return to Portal Track Dashboard</a>
+                </div>
+            </div></div></div>`;
+
+    document.getElementById("quiz").innerHTML = reviewHTML;
+    document.getElementById("quiz").className = "w-100 d-block";
+    
+    document.getElementById("scoreMetricRow").innerHTML = `
+        <div class="col-6">
+            <div class="p-3 bg-dark text-white rounded-3">
+                <span class="text-light d-block small fw-bold mb-1 uppercase tracking-wide">RAW OUTPUT</span>
+                <h3 class="fw-bold m-0">${scoreCount} / ${questions.length}</h3>
+            </div>
+        </div>
+        <div class="col-6">
+            <div class="p-3 bg-light border border-2 border-dark text-dark rounded-3">
+                <span class="text-muted d-block small fw-bold mb-1 uppercase tracking-wide">ACCURACY INDEX</span>
+                <h3 class="fw-bold m-0">${Math.round((scoreCount / questions.length) * 100)}%</h3>
+            </div>
+        </div>`;
+}
+
+window.onload = function() {
+    initLiveClockClockPanel();
+    updateInstructionParameters();
+}
+</script>
+</body>
+</html>
