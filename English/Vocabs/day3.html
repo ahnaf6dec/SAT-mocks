@@ -1,0 +1,1198 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAT® Digital Test Workspace</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <style>
+        :root {
+            --pure-black: #000000;
+            --off-black: #111111;
+            --dark-gray: #333333;
+            --light-border: #e5e5e5;
+            --active-bg: #f8fafc;
+            --pure-white: #ffffff;
+        }
+
+        /* --- Global Reset & Adaptive Viewport Control --- */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            background-color: var(--pure-white);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: var(--pure-black);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Standard body flow default for Home Page */
+        body {
+            overflow-y: auto; 
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ACTIVE EXAM RUNTIME OVERRIDES: Locks layout to prevent general window scrollbars */
+        body.quiz-active {
+            overflow: hidden !important;
+        }
+
+        /* --- Premium High-Contrast Header UI --- */
+        .bb-header {
+            background-color: var(--pure-black);
+            color: var(--pure-white);
+            padding: 14px 24px;
+            flex-shrink: 0;
+            border-bottom: 2px solid var(--pure-black);
+        }
+        .bb-module-title {
+            font-size: 0.8rem;
+            font-weight: 800;
+            letter-spacing: 0.1em;
+            color: #a3a3a3;
+            text-transform: uppercase;
+        }
+        .bb-live-clock-panel {
+            font-size: 0.95rem;
+            color: var(--pure-white);
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            margin-top: 2px;
+        }
+        .bb-timer-container {
+            background-color: var(--off-black);
+            border-radius: 6px;
+            padding: 6px 14px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1.25rem;
+            font-weight: 800;
+            border: 2px solid #444444;
+            color: var(--pure-white);
+            letter-spacing: 1px;
+        }
+        .bb-tool-btn {
+            background: var(--pure-white);
+            border: 2px solid var(--pure-black);
+            color: var(--pure-black);
+            padding: 8px 16px;
+            font-size: 0.9rem;
+            border-radius: 6px;
+            font-weight: 700;
+            transition: all 0.15s ease-in-out;
+        }
+        .bb-tool-btn:hover {
+            background-color: var(--pure-black);
+            color: var(--pure-white);
+        }
+        .bb-tool-btn.flagged-active {
+            background-color: var(--pure-black);
+            color: var(--pure-white);
+            border-color: var(--pure-black);
+        }
+
+        /* --- Main Workspace Layout Container --- */
+        .workspace-container {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            background-color: var(--pure-white);
+            min-height: 0; /* Critical CSS container budget layout fix */
+        }
+
+        /* Home Page Container Setup (Natural Page Scrollable Flow) */
+        #instructionsCard {
+            width: 100%;
+            padding: 40px 20px;
+            margin-bottom: 40px;
+        }
+
+        /* Split Panels Workspace Mode for Quiz Arena */
+        @media (min-width: 992px) {
+            body.quiz-active .workspace-container {
+                flex-direction: row;
+                height: calc(100vh - 74px - 70px); /* Strict screen dimension minus header/footer heights */
+                overflow: hidden;
+            }
+            body.quiz-active .left-panel {
+                width: 50%;
+                height: 100%;
+                overflow-y: auto;
+                border-right: 2px solid var(--pure-black);
+                background-color: var(--pure-white);
+            }
+            body.quiz-active .right-panel {
+                width: 50%;
+                height: 100%;
+                overflow-y: auto;
+                background-color: var(--pure-white);
+            }
+        }
+        @media (max-width: 991.98px) {
+            body.quiz-active {
+                overflow-y: auto !important; /* Fallback for small viewports */
+            }
+            body.quiz-active .workspace-container {
+                height: auto;
+            }
+            body.quiz-active .left-panel, 
+            body.quiz-active .right-panel {
+                width: 100%;
+                height: auto;
+                overflow-y: visible;
+            }
+            body.quiz-active .left-panel {
+                border-bottom: 2px solid var(--pure-black);
+            }
+        }
+
+        /* --- Bookmarked Interactivity States --- */
+        .workspace-container.is-bookmarked .left-panel,
+        .workspace-container.is-bookmarked .right-panel {
+            background-color: #fafafa;
+        }
+        .bookmark-status-banner {
+            display: none;
+            background: var(--pure-black);
+            color: var(--pure-white);
+            font-weight: 700;
+            font-size: 0.8rem;
+            letter-spacing: 0.05em;
+            padding: 4px 10px;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+        .workspace-container.is-bookmarked .bookmark-status-banner {
+            display: inline-block;
+        }
+
+        /* --- Typography Settings --- */
+        .sat-passage {
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: 1.25rem;
+            line-height: 1.85;
+            color: var(--off-black);
+            padding-right: 5px;
+        }
+        .question-text {
+            font-size: 1.3rem;
+            font-weight: 700;
+            line-height: 1.55;
+            color: var(--pure-black);
+            letter-spacing: -0.01em;
+        }
+
+        /* --- Custom Multiple Choice Components --- */
+        .option-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+            width: 100%;
+        }
+        .bb-option-card {
+            flex-grow: 1;
+            background-color: var(--pure-white);
+            border: 2px solid var(--light-border);
+            border-radius: 8px;
+            padding: 14px 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            transition: all 0.15s ease;
+        }
+        .bb-option-card:hover {
+            background-color: var(--active-bg);
+            border-color: var(--dark-gray);
+        }
+        .bb-option-card.selected {
+            border-color: var(--pure-black) !important;
+            background-color: var(--pure-black) !important;
+            color: var(--pure-white) !important;
+        }
+        .bb-option-card.selected .letter-badge {
+            background-color: var(--pure-white);
+            color: var(--pure-black);
+            border-color: var(--pure-white);
+        }
+        .letter-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+            border: 2px solid var(--pure-black);
+            border-radius: 50%;
+            margin-right: 14px;
+            font-weight: 800;
+            font-size: 0.95rem;
+            background-color: var(--pure-white);
+            color: var(--pure-black);
+            flex-shrink: 0;
+        }
+        .option-text-span {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        .bb-option-card.struck {
+            text-decoration: line-through;
+            opacity: 0.25;
+            background-color: var(--pure-white) !important;
+            border-color: var(--light-border) !important;
+            pointer-events: none;
+        }
+        .bb-strike-btn {
+            background: none;
+            border: 2px dashed var(--light-border);
+            color: var(--dark-gray);
+            width: 42px;
+            height: 42px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: all 0.15s;
+            font-size: 1.15rem;
+        }
+        .bb-strike-btn:hover, .bb-strike-btn.active {
+            border-style: solid;
+            border-color: var(--pure-black);
+            color: var(--pure-white);
+            background-color: var(--pure-black);
+        }
+
+        /* --- Pinned Bottom Sticky Footer Navigation --- */
+        .bb-footer {
+            background-color: var(--pure-white);
+            border-top: 2px solid var(--pure-black);
+            padding: 14px 24px;
+            flex-shrink: 0;
+            height: 70px;
+            z-index: 1020;
+        }
+        .question-nav-trigger {
+            background-color: var(--pure-black);
+            color: var(--pure-white);
+            border: none;
+            border-radius: 6px;
+            padding: 8px 24px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+        }
+        .btn-navigation {
+            border: 2px solid var(--pure-black);
+            background: var(--pure-white);
+            color: var(--pure-black);
+            font-weight: 700;
+            font-size: 0.95rem;
+            padding: 8px 20px;
+            border-radius: 6px;
+            transition: all 0.15s;
+        }
+        .btn-navigation:hover:not(:disabled) {
+            background-color: var(--pure-black);
+            color: var(--pure-white);
+        }
+
+        /* --- Review Map Popover Map Layout --- */
+        .grid-popover {
+            width: 320px;
+            padding: 18px;
+            max-height: 350px;
+            overflow-y: auto;
+        }
+        .map-grid-item {
+            width: 40px;
+            height: 40px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--pure-black);
+            border-radius: 6px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            color: var(--pure-black);
+            background-color: var(--pure-white);
+            position: relative;
+        }
+        .map-grid-item.active {
+            background-color: var(--active-bg);
+            box-shadow: 0 0 0 3px var(--pure-black);
+        }
+        .map-grid-item.answered {
+            background-color: var(--pure-black);
+            color: var(--pure-white);
+        }
+        .map-grid-item .flag-indicator {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            font-size: 0.8rem;
+            color: var(--pure-black);
+            background: var(--pure-white);
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="bb-header d-flex flex-column flex-sm-row justify-content-sm-between align-items-start align-items-sm-center gap-3 shadow-sm">
+        <div>
+            <div class="bb-module-title">DIGITAL SAT TESTING ENGINE</div>
+            <div class="bb-live-clock-panel" id="liveHeaderTimestamp">
+                Locating real-time workspace environments...
+            </div>
+        </div>
+        
+        <div class="d-flex align-items-center justify-content-between w-100 w-sm-auto gap-3">
+            <div class="d-flex gap-2" id="topbarTools">
+                <button class="bb-tool-btn d-none" id="toolFlag" onclick="triggerFlag()">
+                    <i class="bi bi-bookmark me-1"></i> Bookmark
+                </button>
+            </div>
+            <div class="d-flex align-items-center gap-2 d-none" id="topbarStats">
+                <span class="bb-timer-container" id="timer">15:00</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="workspace-container" id="workspaceContainer">
+        
+        <div id="instructionsCard">
+            <div class="row justify-content-center mx-0 mt-2">
+                <div class="col-12 col-xl-7">
+                    <div class="card border-2 border-dark shadow-sm p-4 p-md-5 bg-white rounded-3">
+                        <div class="text-center mb-4">
+                            <i class="bi bi-shield-check text-dark" style="font-size: 3rem;"></i>
+                            <h3 class="fw-bold mt-2">Vocabulary Practice Setup</h3>
+                            <p class="text-muted small fw-bold tracking-wide">BLUEBOOK PROTOCOL ENGINE MODULE ALIGNMENT</p>
+                        </div>
+                        
+                        <div class="border border-2 border-dark p-4 rounded mb-4">
+                            <div class="d-flex gap-3">
+                                <i class="bi bi-info-circle-fill fs-4 text-dark"></i>
+                                <div class="small">
+                                    <strong class="d-block text-dark fs-6 mb-1">Context Isolation Protocol</strong>
+                                    <span class="text-secondary d-block mt-1">All platform questions are synthetically generated to optimize high-volume adaptive retrieval.</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-light p-4 rounded border border-2 mb-4">
+                            <h6 class="fw-bold text-dark mb-2"><i class="bi bi-journal-text me-2"></i>Required Core Lexicon Document</h6>
+                            <p class="text-secondary small mb-3">Ensure you complete a formal review of the assigned ledger structures before beginning the countdown sequence matrix:</p>
+                            <a href="https://docs.google.com/document/d/1QgrWrF1drCupM0f-rYdpb82Orxr929NvWneuMcPMZ4A/edit?tab=t.0#heading=h.9waw29pixdc4" target="_blank" class="btn btn-sm btn-dark fw-bold px-4 py-2.5">
+                                <i class="bi bi-box-arrow-up-right me-2"></i> Open Today's Vocab Sheet Document
+                            </a>
+                        </div>
+
+                        <div class="text-secondary mb-4 small">
+                            <h6 class="fw-bold text-dark mb-2"><i class="bi bi-gear-fill me-2"></i>Testing Parameters:</h6>
+                            <ul class="ps-3 mt-2">
+                                <li class="mb-1"><strong>Volume:</strong> <span id="paramVolumeCount">18</span> unique contextual reading matrix tasks.</li>
+                                <li class="mb-1"><strong>Timeline:</strong> 15 minutes absolute countdown constraint.</li>
+                                <li class="mb-1"><strong>Controls:</strong> Select choices to register responses. Toggle <i class="bi bi-bookmark"></i> to flag questions instantly.</li>
+                            </ul>
+                        </div>
+
+                        <div class="text-center pt-2">
+                            <button class="btn btn-dark btn-lg w-100 py-3 fw-bold fs-6 shadow-sm" onclick="startTest()">
+                                Start Practice Test Session <i class="bi bi-arrow-right-short ms-1"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <main id="quiz" class="d-none w-100 h-100 d-flex flex-column flex-lg-row">
+            </main>
+        
+    </div>
+
+    <footer class="bb-footer d-none" id="quizFooter">
+        <div class="container-fluid h-100 d-flex justify-content-between align-items-center">
+            
+            <button class="btn-navigation" id="prevBtn" onclick="prevQ()">
+                <i class="bi bi-chevron-left me-1"></i> Back
+            </button>
+            
+            <div class="dropup">
+                <button class="question-nav-trigger d-flex align-items-center gap-2" type="button" id="gridMapDropdown" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                    <span id="footerProgress" class="fw-bold">Question 1 of 18</span>
+                    <i class="bi bi-chevron-up"></i>
+                </button>
+                <div class="dropdown-menu dropdown-menu-end shadow-lg border border-2 border-dark p-0 rounded-3" aria-labelledby="gridMapDropdown">
+                    <div class="grid-popover">
+                        <h6 class="fw-bold mb-3 text-muted border-bottom pb-2 tracking-wide uppercase small">Review Assessment Map</h6>
+                        <div class="d-flex flex-wrap gap-2" id="navGridMapContainer">
+                            </div>
+                        <div class="border-top mt-4 pt-3 text-center">
+                            <button class="btn btn-dark w-100 fw-bold py-2.5" onclick="finishQuiz()">
+                                <i class="bi bi-check2-circle me-1"></i> Submit Section
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn-navigation" id="nextBtn" onclick="nextQ()">
+                Next <i class="bi bi-chevron-right ms-1"></i>
+            </button>
+            
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+// --- CORE REPOSITORY STORAGE LAYER ---
+const masterQuestionBank = {
+    abhor: [
+        {
+            passage: "As an ardent defender of academic integrity, the university dean came to ______ any form of plagiarism, viewing it as a direct assault on the institutional values of honesty and deep intellectual rigor.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["venerate", "abhor", "tolerate", "embrace"],
+            answer: 1,
+            explanation: "The context indicates an intense hatred or strong rejection of plagiarism, matching the definition of 'abhor'."
+        },
+        {
+            passage: "Though the film critic usually preferred independent dramas, she did not merely dislike the uninspired big-budget blockbuster; she completely ______ its manipulative narrative shortcuts.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["revere", "condone", "overlook", "abhor"],
+            answer: 3,
+            explanation: "The phrase 'did not merely dislike' indicates a progression toward a much stronger negative emotion, which is to 'abhor' (hate very strongly)."
+        },
+        {
+            passage: "Environmental activists ______ the company's decision to dump chemical runoff into the local river ecosystem, organizing immediate public boycotts against their products.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["commend", "validate", "abhor", "ignore"],
+            answer: 2,
+            explanation: "Organizing immediate boycotts against a destructive action implies a deep, profound hatred or strong moral aversion, which aligns with 'abhor'."
+        },
+        {
+            passage: "The celebrated pacifist author frequently noted that to truly advocate for global harmony, one must fundamentally ______ violence in all of its structural and physical manifestations.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["champion", "abhor", "abate", "coordinate"],
+            answer: 1,
+            explanation: "A pacifist would naturally hold an intense, deep-seated hatred for violence, which is to 'abhor' it."
+        },
+        {
+            passage: "While some casual viewers found the reality show mildly entertaining, dedicated media theorists tended to ______ its cynical exploitation of interpersonal conflicts for entertainment value.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["exalt", "substantiate", "endure", "abhor"],
+            answer: 3,
+            explanation: "The passage sets up a contrast between casual amusement and deep critical disapproval, meaning the theorists strongly hate or 'abhor' the show's exploitation."
+        },
+        {
+            passage: "Having suffered through a childhood of severe economic scarcity, the self-made entrepreneur grew to ______ wasteful corporate spending and enforced strict fiscal restraint across all departments.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["foster", "abhor", "overlook", "reconcile"],
+            answer: 1,
+            explanation: "A severe aversion to waste based on past trauma aligns with the intense hatred or strong dislike denoted by 'abhor'."
+        },
+        {
+            passage: "The constitutional scholar argued that true democratic citizens must ______ any administrative attempts to suppress free speech or muzzle independent investigative journalism.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["sanction", "abase", "abhor", "facilitate"],
+            answer: 2,
+            explanation: "Citizens protecting democracy would intensely dislike or oppose the suppression of free speech, making 'abhor' the most logical choice."
+        },
+        {
+            passage: "Animal rights organizations naturally ______ the practice of testing cosmetic products on living subjects, continuously lobbying for completely synthetic testing alternatives.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["endorse", "underestimate", "cultivate", "abhor"],
+            answer: 3,
+            explanation: "Lobbying against cosmetic testing reflects a powerful ethical opposition and hatred for the practice, which fits 'abhor'."
+        },
+        {
+            passage: "Despite the high monetary compensation offered by the defense firm, the idealistic young lawyer chose to ______ corporate malpractice cases rather than compromise his ethical foundations.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["defend", "abhor", "validate", "augment"],
+            answer: 1,
+            explanation: "Refusing lucrative work out of ethical opposition means he strongly hates or rejects malpractice cases, which is to 'abhor' them."
+        },
+        {
+            passage: "Historians note that the former diplomat did not simply disagree with the aggressive foreign policies of his peers; he actively ______ them as threats to international stability.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["revered", "instituted", "abhorred", "abated"],
+            answer: 2,
+            explanation: "The phrase 'did not simply disagree' introduces a stronger level of opposition, indicating that he deeply detested or 'abhorred' the policies."
+        }
+    ],
+    abide: [
+        {
+            passage: "To maintain global diplomatic standing, all participating nations signed an international accord, pledging they would strictly ______ by the agreed-upon carbon reduction thresholds.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["transgress", "abide", "abdicate", "nullify"],
+            answer: 1,
+            explanation: "Pledging to follow or act in accordance with an agreement or set of rules means to 'abide' by them."
+        },
+        {
+            passage: "The strict boarding school headmaster made it explicitly clear that students who refused to ______ by the evening curfew guidelines would face immediate suspension.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["defy", "abase", "abide", "revolt"],
+            answer: 2,
+            explanation: "Following rules or keeping a standard matches the contextual requirement for 'abide'."
+        },
+        {
+            passage: "Although the corporate executive privately disagreed with the new regulatory restrictions, she knew her company had to ______ by them to avoid catastrophic federal penalties.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["bypass", "subvert", "abate", "abide"],
+            answer: 3,
+            explanation: "Complying with federal regulations to avoid penalties means the company must 'abide' by the rules."
+        },
+        {
+            passage: "The stoic mountaineer learned to ______ the freezing sub-zero temperatures and grueling high-altitude conditions, refusing to abandon his journey to the summit.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["abhor", "abide", "escape", "alleviate"],
+            answer: 1,
+            explanation: "Tolerating, enduring, or staying with harsh conditions without giving up fits the definition of 'abide'."
+        },
+        {
+            passage: "Traditional martial arts institutions demand that every practitioner ______ by an unwritten moral code that prioritizes personal humility, self-restraint, and respect.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["violate", "abdicate", "abide", "augment"],
+            answer: 2,
+            explanation: "Following or adhering to an unwritten moral code fits the phrase 'abide by'."
+        },
+        {
+            passage: "Having lived in the quiet countryside for most of her life, Clara found it incredibly difficult to ______ the constant, piercing din of metropolitan traffic outside her apartment.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["relish", "abate", "foster", "abide"],
+            answer: 3,
+            explanation: "Finding it difficult to tolerate or put up with loud noise means she cannot easily 'abide' it."
+        },
+        {
+            passage: "The legal defense team argued that their client had consistently chosen to ______ by the parameters of his parole, demonstrating exemplary civic behavior since his release.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["transgress", "abide", "abase", "waive"],
+            answer: 1,
+            explanation: "Following the specific legal rules and parameters of parole is described as choosing to 'abide' by them."
+        },
+        {
+            passage: "While the young intern found the corporate hierarchy stifling, he resolved to ______ by the structural protocols until he gained enough experience to start his own firm.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["subvert", "overhaul", "abide", "abdicate"],
+            answer: 2,
+            explanation: "Choosing to tolerate or follow established organizational protocols means to 'abide' by them."
+        },
+        {
+            passage: "The seasoned judge stated that the court would not ______ any disruptive outbursts from the gallery, warning that offenders would be held in contempt.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["cultivate", "abide", "provoke", "abate"],
+            answer: 1,
+            explanation: "The context indicates that the judge will not tolerate or allow disruptive actions, making 'abide' the correct choice."
+        },
+        {
+            passage: "Refusing to be swayed by fleeting modern design trends, the classic architect decided to ______ by his core principles of structural symmetry and geometric simplicity.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["abandon", "abase", "fluctuate", "abide"],
+            answer: 3,
+            explanation: "Staying with or remaining faithful to an established set of rules or principles means to 'abide' by them."
+        }
+    ],
+    abject: [
+        {
+            passage: "The investigative journalist published a harrowing expose detailing the ______ poverty experienced by families living in the forgotten slums just outside the industrial capital.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["opulent", "abject", "winsome", "zealous"],
+            answer: 1,
+            explanation: "An extreme, miserable, and severe state of poverty is precisely defined as 'abject' poverty."
+        },
+        {
+            passage: "After their unexpected, catastrophic military defeat, the once-proud nation was reduced to a state of ______ submission, forced to accept humiliating peace terms.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["exalted", "wily", "abject", "resilient"],
+            answer: 2,
+            explanation: "A miserable, utterly hopeless, and degrading state of surrender or submission is described as 'abject'."
+        },
+        {
+            passage: "Despite their initial optimism regarding the tech startup's revolutionary project, the grand venture concluded in ______ failure when the prototype failed to operate.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["winsome", "triumphant", "marginal", "abject"],
+            answer: 3,
+            explanation: "An utter, miserable, and completely hopeless failure matches the descriptive use of 'abject'."
+        },
+        {
+            passage: "The refugees arrived at the border camp in a condition of ______ misery, lacking access to clean drinking water, adequate medicine, or basic shelter.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["luxurious", "abject", "wistful", "indifferent"],
+            answer: 1,
+            explanation: "Miserable, hopeless, and extreme suffering fits the definition of 'abject' perfectly."
+        },
+        {
+            passage: "When confronted with undeniable forensic evidence of his financial crimes, the corporate executive offered an ______ apology to the defrauded board members.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["arrogant", "defiant", "abject", "indifferent"],
+            answer: 2,
+            explanation: "An apology delivered in a low, miserable, groveling, or completely humbled state is an 'abject' apology."
+        },
+        {
+            passage: "The documentary highlights how systemic neglect by municipal authorities trapped generations of rural citizens in ______ economic dependency.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["winsome", "exalted", "dynamic", "abject"],
+            answer: 3,
+            explanation: "A hopeless, miserable, and deep-seated state of economic reliance is described textually as 'abject' dependency."
+        },
+        {
+            passage: "Following the prolonged economic depression, a palpable sense of ______ hopelessness blanketed the industrial town as factory after factory permanently closed down.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["wistful", "abject", "winsome", "abated"],
+            answer: 1,
+            explanation: "Extreme, deep, and utterly miserable hopelessness matches the precise meaning of 'abject'."
+        },
+        {
+            passage: "The protagonist of the novel wanders through an ______ landscape of psychological despair, completely isolated from any form of human companionship.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["opulent", "wily", "abject", "vibrant"],
+            answer: 2,
+            explanation: "A miserable, deeply hopeless state of internal emotional despair is described textually as 'abject'."
+        },
+        {
+            passage: "Historians argue that the treaty did not cultivate lasting international cooperation; rather, it forced the defeated country into an ______ state of destitution that bred resentment.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["affluent", "winsome", "abated", "abject"],
+            answer: 3,
+            explanation: "An extreme, miserable, and severe state of poverty or destitution is categorized as 'abject'."
+        },
+        {
+            passage: "The rescue crew noted that the abandoned domestic animals were found living in truly ______ conditions, starving and completely exposed to the winter elements.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["pristine", "abject", "wily", "tolerable"],
+            answer: 1,
+            explanation: "Extremely miserable, poor, and terrible living conditions are defined precisely as 'abject'."
+        }
+    ],
+    wistful: [
+        {
+            passage: "As she packed away her childhood scrapbooks, Sarah cast a ______ glance at the old photographs, deeply missing the carefree summer afternoons of her youth.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["winsome", "wily", "wistful", "zealous"],
+            answer: 2,
+            explanation: "A sad look focused on thinking about something or someone that is deeply missed is a 'wistful' look."
+        },
+        {
+            passage: "The elderly man spoke in a ______ tone when describing the vibrant, bustling neighborhood of his childhood, which had long since been demolished by urban developers.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["winsome", "abject", "wistful", "indifferent"],
+            answer: 2,
+            explanation: "Speaking with a tinge of sadness and longing for a missed past home or era is the exact definition of 'wistful'."
+        },
+        {
+            passage: "Sitting alone by the foggy train station window, the traveler watched the passing landscapes with a ______ longing for the home he had left behind.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["wily", "wistful", "zealous", "apathetic"],
+            answer: 1,
+            explanation: "A sad, reflective longing for a place or person that is currently missing is described as 'wistful'."
+        },
+        {
+            passage: "The poet’s later works are characterized by a ______ melancholia, frequently focusing on lost opportunities, fading youth, and distant past relationships.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["winsome", "abject", "exalted", "wistful"],
+            answer: 3,
+            explanation: "Sad reflection on missed or lost parts of life represents a 'wistful' state of mind."
+        },
+        {
+            passage: "As the historic theatre prepared to close its doors for the last time, the retiring director offered a ______ smile, reflecting on decades of memorable performances.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["wily", "wistful", "indifferent", "zealous"],
+            answer: 1,
+            explanation: "A smile tinged with sadness due to missing a chapter of life that is ending matches 'wistful'."
+        },
+        {
+            passage: "The melody of the cello piece was incredibly ______, evoking images of a lonely autumn evening and a quiet yearning for things long passed.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["winsome", "wistful", "zealous", "furious"],
+            answer: 1,
+            explanation: "Music that sounds sad and full of longing for something missed or lost is described as 'wistful'."
+        },
+        {
+            passage: "Standing on the shoreline, the aging captain watched the massive new cargo ships with a ______ expression, missing the classic age of wooden sailing vessels.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["winsome", "wily", "abject", "wistful"],
+            answer: 3,
+            explanation: "Looking back with sadness and fondness on something missed from the past is to be 'wistful'."
+        },
+        {
+            passage: "Biographers note that after moving across the globe, the artist’s paintings shifted from bright landscapes to ______ depictions of her native country's architecture.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["winsome", "wily", "wistful", "indifferent"],
+            answer: 2,
+            explanation: "Depictions driven by longing and sadness for a missed homeland match the meaning of 'wistful'."
+        },
+        {
+            passage: "The novel's final chapter leaves readers with a ______ feeling, as the characters successfully rebuild their town but deeply mourn the peaceful life they lost.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["zealous", "winsome", "wistful", "abject"],
+            answer: 2,
+            explanation: "A mixed feeling of sadness and longing for something missed fits the definition of 'wistful'."
+        },
+        {
+            passage: "Every year on the anniversary of the space mission's conclusion, the retired astronaut looks up at the night sky with a ______ sense of wonder and quiet longing.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["wily", "abject", "wistful", "indifferent"],
+            answer: 2,
+            explanation: "Looking back longingly and sadly at an extraordinary past experience that one misses is being 'wistful'."
+        }
+    ],
+    winsome: [
+        {
+            passage: "The child’s ______ smile completely disarmed the frustrated teacher, instantly dissolving the tension in the classroom with its sweet, innocent warmth.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["wily", "winsome", "wistful", "abject"],
+            answer: 1,
+            explanation: "A sweet, charming, and innocent smile matches the precise definition of 'winsome'."
+        },
+        {
+            passage: "The protagonist of the romantic comedy was written as a deeply ______ character whose sweet charm and innocent eccentricities won over the entire town.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["wily", "abject", "winsome", "apathetic"],
+            answer: 2,
+            explanation: "A character defined by sweet, innocent charm is described as 'winsome'."
+        },
+        {
+            passage: "Public relations managers noted that the politician's ______ demeanor made her exceptionally popular among young voters, who appreciated her refreshing innocence.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["wily", "wistful", "abject", "winsome"],
+            answer: 3,
+            explanation: "A charming, sweet, and innocent demeanor aligns perfectly with the term 'winsome'."
+        },
+        {
+            passage: "The illustrator captured the puppy’s playful nature with a series of ______ sketches that emphasized its wide eyes and innocent, sweet expressions.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["wily", "winsome", "wistful", "abject"],
+            answer: 1,
+            explanation: "Sketches showcasing sweet, charming, and innocent traits match the meaning of 'winsome'."
+        },
+        {
+            passage: "Despite the complex and cynical atmosphere of the high-stakes negotiation room, the young diplomat maintained a surprisingly ______ and straightforward manner.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["wily", "abject", "winsome", "indifferent"],
+            answer: 2,
+            explanation: "The passage contrasts a cynical atmosphere with a sweet, innocent, and charming approach, which is 'winsome'."
+        },
+        {
+            passage: "Critics praised the debut novelist for creating a narrative voice that was both highly sophisticated and genuinely ______, full of innocent charm and wonder.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["wily", "wistful", "abject", "winsome"],
+            answer: 3,
+            explanation: "An innocent, charming voice that brings sweetness to a text is defined as 'winsome'."
+        },
+        {
+            passage: "The fairy-tale princess was traditionally depicted as a ______ youth whose innate sweet innocence could soothe even the most ferocious mythical beasts.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["wily", "wistful", "winsome", "abject"],
+            answer: 2,
+            explanation: "A character whose sweet innocence provides charm and power is logically described as 'winsome'."
+        },
+        {
+            passage: "With a ______ shrug of her shoulders and an innocent laugh, the little girl convinced her grandfather to grant her another piece of chocolate cake.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["wily", "wistful", "abject", "winsome"],
+            answer: 3,
+            explanation: "Using an innocent, sweet, and charming gesture to persuade someone is a 'winsome' act."
+        },
+        {
+            passage: "The tourism board released a promotional video showcasing the coastal village’s ______ local customs, emphasizing their sweet, old-fashioned charm.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["wily", "winsome", "abject", "indifferent"],
+            answer: 1,
+            explanation: "Customs possessing an innocent, sweet, and pleasing charm are appropriately called 'winsome'."
+        },
+        {
+            passage: "Her ______ personality allowed her to make friends effortlessly wherever she traveled, as people were naturally drawn to her sweet and innocent nature.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["wily", "winsome", "wistful", "abject"],
+            answer: 1,
+            explanation: "An innocent, sweet nature that naturally charms and attracts others defines a 'winsome' personality."
+        }
+    ],
+    wily: [
+        {
+            passage: "The folklore of many cultures features a ______ fox character who uses clever, sneaky tricks to outsmart larger and physically stronger predators.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["winsome", "wily", "wistful", "abject"],
+            answer: 1,
+            explanation: "A character who is clever in a sneaky, tricky, or deceptive way is the exact definition of 'wily'."
+        },
+        {
+            passage: "The defense attorney warned his colleagues that the prosecuting lawyer was exceptionally ______; he would use any subtle legal loophole to win the trial.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["winsome", "wistful", "wily", "apathetic"],
+            answer: 2,
+            explanation: "An individual who is highly clever, sneaky, and uses tricky tactics to achieve an objective is 'wily'."
+        },
+        {
+            passage: "In the high-stakes corporate takeover bid, the veteran investor deployed a ______ strategy designed to secretly buy up company stock without alerting the board.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["winsome", "abject", "zealous", "wily"],
+            answer: 3,
+            explanation: "A clever, sneaky, and tricky business strategy fits the contextual definition of 'wily'."
+        },
+        {
+            passage: "The detective realized that the art thief was incredibly ______ when she discovered a series of complex false clues left behind to deliberately mislead the police.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["winsome", "wily", "wistful", "abject"],
+            answer: 1,
+            explanation: "Leaving complex, tricky, and deceptive clues shows a clever and sneaky nature, which is 'wily'."
+        },
+        {
+            passage: "Although the young chess player was highly aggressive, her opponent was more ______; he patiently set a sneaky trap that capitalized on her overconfidence.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["winsome", "wistful", "wily", "abject"],
+            answer: 2,
+            explanation: "Setting a sneaky, hidden, and clever trap demonstrates a 'wily' playing style."
+        },
+        {
+            passage: "Political columnists described the prime minister as a ______ strategist who masterfully navigated shifting party alliances through clever and tricky backroom deals.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["winsome", "wistful", "indifferent", "wily"],
+            answer: 3,
+            explanation: "Engaging in tricky, clever, and sneaky political deals requires a 'wily' operator."
+        },
+        {
+            passage: "The novel's antagonist is a ______ advisor who slowly manipulates the king by planting false rumors while projecting an image of absolute loyalty.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["winsome", "wily", "wistful", "abject"],
+            answer: 1,
+            explanation: "A clever, tricky, and sneaky advisor who operates via deception matches the definition of 'wily'."
+        },
+        {
+            passage: "Orchard owners developed complex netting systems to protect their fruit trees from ______ raccoons that always found sneaky, clever ways to bypass basic fencing.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["winsome", "wistful", "wily", "abated"],
+            answer: 2,
+            explanation: "Animals that find clever, sneaky, and tricky paths around obstacles are described as 'wily'."
+        },
+        {
+            passage: "Cybersecurity experts warned that the new phishing scam was engineered by ______ hackers who perfectly mimicked government emails to trick unsuspecting users.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["winsome", "wistful", "abject", "wily"],
+            answer: 3,
+            explanation: "Hackers using sneaky, clever, and highly deceptive tricks to fool users are categorized as 'wily'."
+        },
+        {
+            passage: "The general preferred direct battlefield confrontations, expressing open disdain for the ______ espionage tactics favored by his intelligence officers.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["winsome", "wily", "wistful", "abject"],
+            answer: 1,
+            explanation: "Espionage tactics based on sneaky, clever, and tricky deceptions are described as 'wily' tactics."
+        }
+    ]
+};
+// --- RUNTIME LIVE CYCLE ARRAYS ---
+let questions = []; 
+let current = 0;
+let userAnswers = [];
+let bookmarkedQuestions = [];
+let struckOptions = [];
+let totalTime = 900; 
+let countdownInterval;
+
+function initLiveClockClockPanel() {
+    function updateClockTime() {
+        const timestampElement = document.getElementById("liveHeaderTimestamp");
+        const now = new Date();
+        const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        
+        const dateOptions = { year: 'numeric', month: 'short', day: 'numeric' };
+        const formattedDate = now.toLocaleDateString('en-US', dateOptions);
+        
+        let hours = now.getHours();
+        let minutes = now.getMinutes();
+        let seconds = now.getSeconds();
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        
+        hours = hours % 12;
+        hours = hours ? hours : 12;
+        minutes = minutes < 10 ? '0' + minutes : minutes;
+        seconds = seconds < 10 ? '0' + seconds : seconds;
+        
+        timestampElement.innerHTML = `<i class="bi bi-calendar3 me-2"></i> ${days[now.getDay()]}, ${formattedDate} &bull; ${hours}:${minutes}:${seconds} ${ampm}`;
+    }
+    updateClockTime();
+    setInterval(updateClockTime, 1000);
+}
+
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
+
+function generateDynamicTestSession() {
+    let completePool = [];
+    for (const category in masterQuestionBank) {
+        masterQuestionBank[category].forEach(item => completePool.push({...item}));
+    }
+    // Shuffle all gathered unique questions randomly
+    shuffleArray(completePool);
+    
+    // Select exactly 18 unique questions from the pool of 60 items
+    return completePool.slice(0, 18);
+}
+
+function updateInstructionParameters() {
+    let uniqueCount = 0;
+    for (const category in masterQuestionBank) {
+        uniqueCount += masterQuestionBank[category].length;
+    }
+    const displayCount = Math.min(18, uniqueCount);
+    document.getElementById("paramVolumeCount").innerText = displayCount;
+}
+
+function startTest() {
+    questions = generateDynamicTestSession();
+    current = 0;
+    userAnswers = Array(questions.length).fill(null);
+    bookmarkedQuestions = Array(questions.length).fill(false);
+    struckOptions = Array(questions.length).fill(null).map(() => Array(4).fill(false));
+    totalTime = 900;
+
+    // Apply active exam modifier class to body to configure independent layout panels
+    document.body.classList.add("quiz-active");
+
+    document.getElementById("instructionsCard").classList.add("d-none");
+    document.getElementById("quiz").classList.remove("d-none");
+    document.getElementById("quizFooter").classList.remove("d-none");
+    document.getElementById("topbarStats").classList.remove("d-none");
+    document.getElementById("toolFlag").classList.remove("d-none");
+
+    clearInterval(countdownInterval);
+    initTimer();
+    loadQuestion();
+}
+
+function initTimer() {
+    const timerElement = document.getElementById("timer");
+    countdownInterval = setInterval(() => {
+        let minutes = Math.floor(totalTime / 60);
+        let seconds = totalTime % 60;
+        timerElement.innerText = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        if (totalTime <= 0) {
+            clearInterval(countdownInterval);
+            finishQuiz();
+        }
+        totalTime--;
+    }, 1000);
+}
+
+function loadQuestion() {
+    let q = questions[current];
+    document.getElementById("footerProgress").innerText = `Question ${current + 1} of ${questions.length}`;
+    
+    const workspaceContainer = document.getElementById("workspaceContainer");
+    const flagBtn = document.getElementById("toolFlag");
+    
+    if(bookmarkedQuestions[current]) {
+        flagBtn.innerHTML = `<i class="bi bi-bookmark-fill me-1"></i> Bookmarked`;
+        flagBtn.className = "bb-tool-btn flagged-active";
+        workspaceContainer.classList.add("is-bookmarked");
+    } else {
+        flagBtn.innerHTML = `<i class="bi bi-bookmark me-1"></i> Bookmark`;
+        flagBtn.className = "bb-tool-btn";
+        workspaceContainer.classList.remove("is-bookmarked");
+    }
+
+    let html = `
+        <div class="left-panel p-4 p-md-5">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="badge bg-dark text-white px-3 py-1.5 fw-bold small tracking-wide">PASSAGE FRAME</span>
+                <span class="bookmark-status-banner"><i class="bi bi-bookmark-fill me-1"></i> Flagged Item</span>
+            </div>
+            <div class="sat-passage">${q.passage}</div>
+        </div>
+        
+        <div class="right-panel p-4 p-md-5 bg-white">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="badge bg-light text-dark border border-2 border-dark px-3 py-1.5 fw-bold small tracking-wide">QUESTION PARAMETERS</span>
+                <div style="cursor: pointer;" onclick="triggerFlag()">
+                    <i class="bi ${bookmarkedQuestions[current] ? 'bi-bookmark-fill text-dark' : 'bi-bookmark text-muted'}" style="font-size: 1.5rem;"></i>
+                </div>
+            </div>
+            <div class="question-text mb-4">${current + 1}. ${q.q}</div>
+            <div class="d-flex flex-column gap-1">`;
+
+    q.options.forEach((opt, i) => {
+        let isSelected = (userAnswers[current] === i) ? 'selected' : '';
+        let isStruck = struckOptions[current][i] ? 'struck' : '';
+        let strikeActive = struckOptions[current][i] ? 'active' : '';
+        let letter = String.fromCharCode(65 + i);
+
+        html += `
+            <div class="option-wrapper">
+                <div class="bb-option-card ${isSelected} ${isStruck}" onclick="selectOption(${i})">
+                    <span class="letter-badge">${letter}</span>
+                    <span class="option-text-span">${opt}</span>
+                </div>
+                <button class="bb-strike-btn ${strikeActive}" onclick="toggleStrike(${i}, event)" title="Strike Option">
+                    <i class="bi bi-type-strikethrough"></i>
+                </button>
+            </div>`;
+    });
+
+    html += `</div></div>`;
+    document.getElementById("quiz").innerHTML = html;
+    
+    document.getElementById("prevBtn").disabled = (current === 0);
+    document.getElementById("nextBtn").disabled = (current === questions.length - 1);
+    
+    // Smooth reset panel scrolls to top upon dynamic load updates
+    const lp = document.querySelector('.left-panel');
+    const rp = document.querySelector('.right-panel');
+    if (lp) lp.scrollTop = 0;
+    if (rp) rp.scrollTop = 0;
+
+    buildNavGridMap();
+}
+
+function triggerFlag() {
+    bookmarkedQuestions[current] = !bookmarkedQuestions[current];
+    loadQuestion();
+}
+
+function toggleStrike(optionIndex, event) {
+    event.stopPropagation();
+    struckOptions[current][optionIndex] = !struckOptions[current][optionIndex];
+    if (struckOptions[current][optionIndex] && userAnswers[current] === optionIndex) {
+        userAnswers[current] = null;
+    }
+    loadQuestion();
+}
+
+function selectOption(i) {
+    if (struckOptions[current][i]) return;
+    userAnswers[current] = i;
+    loadQuestion();
+}
+
+function buildNavGridMap() {
+    const container = document.getElementById("navGridMapContainer");
+    container.innerHTML = "";
+    
+    questions.forEach((_, idx) => {
+        let statusClass = "";
+        if (current === idx) statusClass += " active";
+        if (userAnswers[idx] !== null) statusClass += " answered";
+        
+        let bookmarkIcon = bookmarkedQuestions[idx] ? `<i class="bi bi-bookmark-fill flag-indicator"></i>` : "";
+        
+        container.innerHTML += `
+            <div class="map-grid-item ${statusClass}" onclick="jumpToQuestion(${idx})">
+                ${idx + 1}
+                ${bookmarkIcon}
+            </div>`;
+    });
+}
+
+function jumpToQuestion(index) {
+    current = index;
+    loadQuestion();
+}
+
+function nextQ() {
+    if (current < questions.length - 1) {
+        current++;
+        loadQuestion();
+    }
+}
+
+function prevQ() {
+    if (current > 0) {
+        current--;
+        loadQuestion();
+    }
+}
+
+function finishQuiz() {
+    clearInterval(countdownInterval);
+    document.body.classList.remove("quiz-active"); // Restores general document flow for results review
+
+    document.getElementById("topbarStats").classList.add("d-none");
+    document.getElementById("toolFlag").classList.add("d-none");
+    document.getElementById("quizFooter").classList.add("d-none");
+    
+    const workspace = document.getElementById("workspaceContainer");
+    workspace.classList.remove("is-bookmarked");
+
+    let scoreCount = 0;
+    let reviewHTML = `
+        <div class="w-100 p-3 p-md-5">
+            <div class="row justify-content-center mx-0">
+                <div class="col-12 col-xl-9">
+                    <div class="card border border-2 border-dark shadow-sm p-4 bg-white rounded-3 mb-4">
+                        <h4 class="fw-bold text-center mb-3">SAT® Assessment Performance Evaluation</h4>
+                        <div class="row g-3 text-center" id="scoreMetricRow"></div>
+                    </div>`;
+
+    questions.forEach((q, i) => {
+        let isCorrect = (userAnswers[i] === q.answer);
+        if(isCorrect) scoreCount++;
+        
+        let statusBadge = isCorrect ? 
+            `<span class="badge bg-dark text-white border border-2 border-dark px-3 py-1.5 fw-bold"><i class="bi bi-check-circle-fill me-1"></i> CORRECT</span>` : 
+            `<span class="badge bg-white text-dark border border-2 border-dark px-3 py-1.5 fw-bold"><i class="bi bi-x-circle-fill me-1"></i> INCORRECT</span>`;
+
+        reviewHTML += `
+            <div class="card border border-2 border-dark shadow-sm rounded-3 p-4 bg-white mb-4">
+                <div class="d-flex justify-content-between align-items-center border-bottom border-2 pb-2 mb-3">
+                    <h6 class="fw-bold m-0 text-dark">Question Sequence Matrix ${i + 1}</h6>
+                    ${statusBadge}
+                </div>
+                <div class="sat-passage p-3 bg-light rounded text-muted mb-3 border-start border-4 border-dark fs-6">
+                    ${q.passage}
+                </div>
+                <p class="fw-bold text-dark fs-5 mb-2">${q.q}</p>
+                <div class="fs-6 mb-3 p-2.5 border rounded">
+                    <div class="text-secondary"><strong>Selected Student Profile Asset:</strong> <span class="fw-bold text-dark">${userAnswers[i] !== null ? q.options[userAnswers[i]] : 'None Registered'}</span></div>
+                    <div class="text-dark mt-1"><strong>Calibrated Answer Target Key:</strong> <span class="fw-bold">${q.options[q.answer]}</span></div>
+                </div>
+                <div class="p-3 bg-light rounded text-secondary border small fs-6">
+                    <strong>Analytical Context Rationale:</strong> ${q.explanation}
+                </div>
+            </div>`;
+    });
+
+    reviewHTML += `
+                <div class="text-center pt-2">
+                    <a href="index.html" class="btn btn-dark btn-lg px-5 py-2.5 rounded fs-6 fw-bold"><i class="bi bi-house-door me-2"></i> Return to Portal Track Dashboard</a>
+                </div>
+            </div></div></div>`;
+
+    document.getElementById("quiz").innerHTML = reviewHTML;
+    document.getElementById("quiz").className = "w-100 d-block";
+    
+    document.getElementById("scoreMetricRow").innerHTML = `
+        <div class="col-6">
+            <div class="p-3 bg-dark text-white rounded-3">
+                <span class="text-light d-block small fw-bold mb-1 uppercase tracking-wide">RAW OUTPUT</span>
+                <h3 class="fw-bold m-0">${scoreCount} / ${questions.length}</h3>
+            </div>
+        </div>
+        <div class="col-6">
+            <div class="p-3 bg-light border border-2 border-dark text-dark rounded-3">
+                <span class="text-muted d-block small fw-bold mb-1 uppercase tracking-wide">ACCURACY INDEX</span>
+                <h3 class="fw-bold m-0">${Math.round((scoreCount / questions.length) * 100)}%</h3>
+            </div>
+        </div>`;
+}
+
+window.onload = function() {
+    initLiveClockClockPanel();
+    updateInstructionParameters();
+}
+</script>
+</body>
+</html>
