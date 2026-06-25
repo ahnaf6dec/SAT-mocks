@@ -1,0 +1,1712 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAT® Digital Test Workspace</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <style>
+        :root {
+            --pure-black: #000000;
+            --off-black: #111111;
+            --dark-gray: #333333;
+            --light-border: #e5e5e5;
+            --active-bg: #f8fafc;
+            --pure-white: #ffffff;
+        }
+
+        /* --- Global Reset & Adaptive Viewport Control --- */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            background-color: var(--pure-white);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: var(--pure-black);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Standard body flow default for Home Page */
+        body {
+            overflow-y: auto; 
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ACTIVE EXAM RUNTIME OVERRIDES: Locks layout to prevent general window scrollbars */
+        body.quiz-active {
+            overflow: hidden !important;
+        }
+
+        /* --- Premium High-Contrast Header UI --- */
+        .bb-header {
+            background-color: var(--pure-black);
+            color: var(--pure-white);
+            padding: 14px 24px;
+            flex-shrink: 0;
+            border-bottom: 2px solid var(--pure-black);
+        }
+        .bb-module-title {
+            font-size: 0.8rem;
+            font-weight: 800;
+            letter-spacing: 0.1em;
+            color: #a3a3a3;
+            text-transform: uppercase;
+        }
+        .bb-live-clock-panel {
+            font-size: 0.95rem;
+            color: var(--pure-white);
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            margin-top: 2px;
+        }
+        .bb-timer-container {
+            background-color: var(--off-black);
+            border-radius: 6px;
+            padding: 6px 14px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1.25rem;
+            font-weight: 800;
+            border: 2px solid #444444;
+            color: var(--pure-white);
+            letter-spacing: 1px;
+        }
+        .bb-tool-btn {
+            background: var(--pure-white);
+            border: 2px solid var(--pure-black);
+            color: var(--pure-black);
+            padding: 8px 16px;
+            font-size: 0.9rem;
+            border-radius: 6px;
+            font-weight: 700;
+            transition: all 0.15s ease-in-out;
+        }
+        .bb-tool-btn:hover {
+            background-color: var(--pure-black);
+            color: var(--pure-white);
+        }
+        .bb-tool-btn.flagged-active {
+            background-color: var(--pure-black);
+            color: var(--pure-white);
+            border-color: var(--pure-black);
+        }
+
+        /* --- Main Workspace Layout Container --- */
+        .workspace-container {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            background-color: var(--pure-white);
+            min-height: 0; /* Critical CSS container budget layout fix */
+        }
+
+        /* Home Page Container Setup (Natural Page Scrollable Flow) */
+        #instructionsCard {
+            width: 100%;
+            padding: 40px 20px;
+            margin-bottom: 40px;
+        }
+
+        /* Split Panels Workspace Mode for Quiz Arena */
+        @media (min-width: 992px) {
+            body.quiz-active .workspace-container {
+                flex-direction: row;
+                height: calc(100vh - 74px - 70px); /* Strict screen dimension minus header/footer heights */
+                overflow: hidden;
+            }
+            body.quiz-active .left-panel {
+                width: 50%;
+                height: 100%;
+                overflow-y: auto;
+                border-right: 2px solid var(--pure-black);
+                background-color: var(--pure-white);
+            }
+            body.quiz-active .right-panel {
+                width: 50%;
+                height: 100%;
+                overflow-y: auto;
+                background-color: var(--pure-white);
+            }
+        }
+        @media (max-width: 991.98px) {
+            body.quiz-active {
+                overflow-y: auto !important; /* Fallback for small viewports */
+            }
+            body.quiz-active .workspace-container {
+                height: auto;
+            }
+            body.quiz-active .left-panel, 
+            body.quiz-active .right-panel {
+                width: 100%;
+                height: auto;
+                overflow-y: visible;
+            }
+            body.quiz-active .left-panel {
+                border-bottom: 2px solid var(--pure-black);
+            }
+        }
+
+        /* --- Bookmarked Interactivity States --- */
+        .workspace-container.is-bookmarked .left-panel,
+        .workspace-container.is-bookmarked .right-panel {
+            background-color: #fafafa;
+        }
+        .bookmark-status-banner {
+            display: none;
+            background: var(--pure-black);
+            color: var(--pure-white);
+            font-weight: 700;
+            font-size: 0.8rem;
+            letter-spacing: 0.05em;
+            padding: 4px 10px;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+        .workspace-container.is-bookmarked .bookmark-status-banner {
+            display: inline-block;
+        }
+
+        /* --- Typography Settings --- */
+        .sat-passage {
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: 1.25rem;
+            line-height: 1.85;
+            color: var(--off-black);
+            padding-right: 5px;
+        }
+        .question-text {
+            font-size: 1.3rem;
+            font-weight: 700;
+            line-height: 1.55;
+            color: var(--pure-black);
+            letter-spacing: -0.01em;
+        }
+
+        /* --- Custom Multiple Choice Components --- */
+        .option-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+            width: 100%;
+        }
+        .bb-option-card {
+            flex-grow: 1;
+            background-color: var(--pure-white);
+            border: 2px solid var(--light-border);
+            border-radius: 8px;
+            padding: 14px 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            transition: all 0.15s ease;
+        }
+        .bb-option-card:hover {
+            background-color: var(--active-bg);
+            border-color: var(--dark-gray);
+        }
+        .bb-option-card.selected {
+            border-color: var(--pure-black) !important;
+            background-color: var(--pure-black) !important;
+            color: var(--pure-white) !important;
+        }
+        .bb-option-card.selected .letter-badge {
+            background-color: var(--pure-white);
+            color: var(--pure-black);
+            border-color: var(--pure-white);
+        }
+        .letter-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+            border: 2px solid var(--pure-black);
+            border-radius: 50%;
+            margin-right: 14px;
+            font-weight: 800;
+            font-size: 0.95rem;
+            background-color: var(--pure-white);
+            color: var(--pure-black);
+            flex-shrink: 0;
+        }
+        .option-text-span {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        .bb-option-card.struck {
+            text-decoration: line-through;
+            opacity: 0.25;
+            background-color: var(--pure-white) !important;
+            border-color: var(--light-border) !important;
+            pointer-events: none;
+        }
+        .bb-strike-btn {
+            background: none;
+            border: 2px dashed var(--light-border);
+            color: var(--dark-gray);
+            width: 42px;
+            height: 42px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: all 0.15s;
+            font-size: 1.15rem;
+        }
+        .bb-strike-btn:hover, .bb-strike-btn.active {
+            border-style: solid;
+            border-color: var(--pure-black);
+            color: var(--pure-white);
+            background-color: var(--pure-black);
+        }
+
+        /* --- Pinned Bottom Sticky Footer Navigation --- */
+        .bb-footer {
+            background-color: var(--pure-white);
+            border-top: 2px solid var(--pure-black);
+            padding: 14px 24px;
+            flex-shrink: 0;
+            height: 70px;
+            z-index: 1020;
+        }
+        .question-nav-trigger {
+            background-color: var(--pure-black);
+            color: var(--pure-white);
+            border: none;
+            border-radius: 6px;
+            padding: 8px 24px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+        }
+        .btn-navigation {
+            border: 2px solid var(--pure-black);
+            background: var(--pure-white);
+            color: var(--pure-black);
+            font-weight: 700;
+            font-size: 0.95rem;
+            padding: 8px 20px;
+            border-radius: 6px;
+            transition: all 0.15s;
+        }
+        .btn-navigation:hover:not(:disabled) {
+            background-color: var(--pure-black);
+            color: var(--pure-white);
+        }
+
+        /* --- Review Map Popover Map Layout --- */
+        .grid-popover {
+            width: 320px;
+            padding: 18px;
+            max-height: 350px;
+            overflow-y: auto;
+        }
+        .map-grid-item {
+            width: 40px;
+            height: 40px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--pure-black);
+            border-radius: 6px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            color: var(--pure-black);
+            background-color: var(--pure-white);
+            position: relative;
+        }
+        .map-grid-item.active {
+            background-color: var(--active-bg);
+            box-shadow: 0 0 0 3px var(--pure-black);
+        }
+        .map-grid-item.answered {
+            background-color: var(--pure-black);
+            color: var(--pure-white);
+        }
+        .map-grid-item .flag-indicator {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            font-size: 0.8rem;
+            color: var(--pure-black);
+            background: var(--pure-white);
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="bb-header d-flex flex-column flex-sm-row justify-content-sm-between align-items-start align-items-sm-center gap-3 shadow-sm">
+        <div>
+            <div class="bb-module-title">DIGITAL SAT TESTING ENGINE</div>
+            <div class="bb-live-clock-panel" id="liveHeaderTimestamp">
+                Locating real-time workspace environments...
+            </div>
+        </div>
+        
+        <div class="d-flex align-items-center justify-content-between w-100 w-sm-auto gap-3">
+            <div class="d-flex gap-2" id="topbarTools">
+                <button class="bb-tool-btn d-none" id="toolFlag" onclick="triggerFlag()">
+                    <i class="bi bi-bookmark me-1"></i> Bookmark
+                </button>
+            </div>
+            <div class="d-flex align-items-center gap-2 d-none" id="topbarStats">
+                <span class="bb-timer-container" id="timer">15:00</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="workspace-container" id="workspaceContainer">
+        
+        <div id="instructionsCard">
+            <div class="row justify-content-center mx-0 mt-2">
+                <div class="col-12 col-xl-7">
+                    <div class="card border-2 border-dark shadow-sm p-4 p-md-5 bg-white rounded-3">
+                        <div class="text-center mb-4">
+                            <i class="bi bi-shield-check text-dark" style="font-size: 3rem;"></i>
+                            <h3 class="fw-bold mt-2">Vocabulary Practice Setup</h3>
+                            <p class="text-muted small fw-bold tracking-wide">BLUEBOOK PROTOCOL ENGINE MODULE ALIGNMENT</p>
+                        </div>
+                        
+                        <div class="border border-2 border-dark p-4 rounded mb-4">
+                            <div class="d-flex gap-3">
+                                <i class="bi bi-info-circle-fill fs-4 text-dark"></i>
+                                <div class="small">
+                                    <strong class="d-block text-dark fs-6 mb-1">Context Isolation Protocol</strong>
+                                    <span class="text-secondary d-block mt-1">All platform questions are synthetically generated to optimize high-volume adaptive retrieval.</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-light p-4 rounded border border-2 mb-4">
+                            <h6 class="fw-bold text-dark mb-2"><i class="bi bi-journal-text me-2"></i>Required Core Lexicon Document</h6>
+                            <p class="text-secondary small mb-3">Ensure you complete a formal review of the assigned ledger structures before beginning the countdown sequence matrix:</p>
+                            <a href="https://docs.google.com/document/d/1QgrWrF1drCupM0f-rYdpb82Orxr929NvWneuMcPMZ4A/edit?tab=t.0#heading=h.onebvwnruqd0" target="_blank" class="btn btn-sm btn-dark fw-bold px-4 py-2.5">
+                                <i class="bi bi-box-arrow-up-right me-2"></i> Open Today's Vocab Sheet Document
+                            </a>
+                        </div>
+
+                        <div class="text-secondary mb-4 small">
+                            <h6 class="fw-bold text-dark mb-2"><i class="bi bi-gear-fill me-2"></i>Testing Parameters:</h6>
+                            <ul class="ps-3 mt-2">
+                                <li class="mb-1"><strong>Volume:</strong> <span id="paramVolumeCount">18</span> unique contextual reading matrix tasks.</li>
+                                <li class="mb-1"><strong>Timeline:</strong> 15 minutes absolute countdown constraint.</li>
+                                <li class="mb-1"><strong>Controls:</strong> Select choices to register responses. Toggle <i class="bi bi-bookmark"></i> to flag questions instantly.</li>
+                            </ul>
+                        </div>
+
+                        <div class="text-center pt-2">
+                            <button class="btn btn-dark btn-lg w-100 py-3 fw-bold fs-6 shadow-sm" onclick="startTest()">
+                                Start Practice Test Session <i class="bi bi-arrow-right-short ms-1"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <main id="quiz" class="d-none w-100 h-100 d-flex flex-column flex-lg-row">
+            </main>
+        
+    </div>
+
+    <footer class="bb-footer d-none" id="quizFooter">
+        <div class="container-fluid h-100 d-flex justify-content-between align-items-center">
+            
+            <button class="btn-navigation" id="prevBtn" onclick="prevQ()">
+                <i class="bi bi-chevron-left me-1"></i> Back
+            </button>
+            
+            <div class="dropup">
+                <button class="question-nav-trigger d-flex align-items-center gap-2" type="button" id="gridMapDropdown" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                    <span id="footerProgress" class="fw-bold">Question 1 of 18</span>
+                    <i class="bi bi-chevron-up"></i>
+                </button>
+                <div class="dropdown-menu dropdown-menu-end shadow-lg border border-2 border-dark p-0 rounded-3" aria-labelledby="gridMapDropdown">
+                    <div class="grid-popover">
+                        <h6 class="fw-bold mb-3 text-muted border-bottom pb-2 tracking-wide uppercase small">Review Assessment Map</h6>
+                        <div class="d-flex flex-wrap gap-2" id="navGridMapContainer">
+                            </div>
+                        <div class="border-top mt-4 pt-3 text-center">
+                            <button class="btn btn-dark w-100 fw-bold py-2.5" onclick="finishQuiz()">
+                                <i class="bi bi-check2-circle me-1"></i> Submit Section
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn-navigation" id="nextBtn" onclick="nextQ()">
+                Next <i class="bi bi-chevron-right ms-1"></i>
+            </button>
+            
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+// --- CORE REPOSITORY STORAGE LAYER ---
+const masterQuestionBank = {
+    abjure: [
+        {
+            passage: "Following the publication of his empirical data on cellular mutation, the researcher was pressured by conservative members of the faculty to ______ his controversial thesis, but he steadfastly refused to compromise his scientific integrity.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["abjure", "abdicate", "abate", "abide"],
+            answer: 0,
+            explanation: "The researcher is being pressured to give up or formally reject a belief/thesis. 'Abjure' means to renounce or reject a belief or idea, fitting the context."
+        },
+        {
+            passage: "The political dissident made it clear that while he would accept physical exile, he would never ______ his commitment to democratic governance and free speech.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["abet", "abduct", "abase", "abjure"],
+            answer: 3,
+            explanation: "Refusing to give up or reject a deep-seated political belief is described as refusing to 'abjure' it."
+        },
+        {
+            passage: "As part of the formal peace accord, the insurgent leaders agreed to publicly ______ the use of political violence, transitioning instead into a legitimate political party.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["abjure", "abate", "yoke", "abide"],
+            answer: 0,
+            explanation: "Formally giving up or rejecting a practice (like political violence) is the definition of 'abjure'."
+        },
+        {
+            passage: "Having witnessed the catastrophic social consequences of the financial crisis, the economist chose to ______ the free-market ideologies he had championed for decades.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["abdicate", "abjure", "abet", "abase"],
+            answer: 1,
+            explanation: "Giving up or formally rejecting a previously held theory or ideology means to 'abjure' it."
+        },
+        {
+            passage: "The cult members were forced to ______ all loyalty to their biological families before being permitted to enter the inner sanctum of the compound.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["abate", "abjure", "abduct", "abide"],
+            answer: 1,
+            explanation: "Rejecting or giving up a loyalty or belief corresponds directly to 'abjure'."
+        },
+        {
+            passage: "To secure his release from the inquisitorial court, the philosopher was compelled to sign an oath that forced him to ______ his heliocentric models of the solar system.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["abjure", "abet", "yoke", "abdicate"],
+            answer: 0,
+            explanation: "Being forced to renounce or reject a scientific belief or theory is a textbook usage of 'abjure'."
+        },
+        {
+            passage: "Though she spent her early career advocating for radical institutional reforms, her later essays suggest she did eventually ______ her more extreme positions.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["abate", "abase", "abjure", "abduct"],
+            answer: 2,
+            explanation: "Giving up or backing away from a previously held ideological position is to 'abjure' it."
+        },
+        {
+            passage: "The treaty explicitly stated that both signing nations must forever ______ any territorial claims over the disputed archipelago in the southern sea.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["abjure", "abdicate", "abide", "abet"],
+            answer: 0,
+            explanation: "Rejecting or giving up a claim, belief, or principle is to 'abjure' it. While 'abdicate' means giving up a position/throne, 'abjure' fits rejecting a claim or idea."
+        }
+    ],
+    abnegation: [
+        {
+            passage: "The monk’s life was defined by a rigorous spirit of ______, as he routinely gave up physical comforts and dietary pleasures to focus entirely on spiritual contemplation.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["wrath", "abnegation", "zenith", "aberration"],
+            answer: 1,
+            explanation: "The context describes giving up physical comforts and practices of self-denial, which perfectly defines 'abnegation'."
+        },
+        {
+            passage: "Philosophers who preach extreme environmentalism argue that saving the planet will require a collective ______ of consumerist luxuries from global populations.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["abnegation", "aberration", "zephyr", "wrath"],
+            answer: 0,
+            explanation: "Giving up personal comforts or pleasures for a higher cause is 'abnegation'."
+        },
+        {
+            passage: "Her decision to stay in the isolated village to care for the sick was a profound act of self-imposed ______, completely separating her from her former luxurious lifestyle.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["zenith", "zephyr", "abnegation", "aberration"],
+            answer: 2,
+            explanation: "An act of self-denial and giving up life's pleasures aligns with 'abnegation'."
+        },
+        {
+            passage: "The aesthetic design of the wellness retreat emphasizes an absolute ______ of digital distractions, requiring guests to surrender all electronic devices at the gate.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["abnegation", "aberration", "zenith", "wrath"],
+            answer: 0,
+            explanation: "Denying oneself pleasures or modern comforts fits the term 'abnegation'."
+        },
+        {
+            passage: "During times of total war, civic leaders often praise the public’s forced ______ of luxury items as an honorable sacrifice for national survival.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["zephyr", "abnegation", "aberration", "zenith"],
+            answer: 1,
+            explanation: "Giving up or denying oneself luxuries and comforts is defined as 'abnegation'."
+        },
+        {
+            passage: "To achieve the physical discipline required for the Olympic marathon, the athlete lived a life of strict ______, avoiding all rich foods and social celebrations.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["abnegation", "wrath", "zephyr", "aberration"],
+            answer: 0,
+            explanation: "Practicing self-denial regarding food and pleasures is 'abnegation'."
+        },
+        {
+            passage: "The biography portrays the historical leader not as a power-hungry tyrant, but as a figure of quiet ______, who preferred modest clothing and simple meals.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["zenith", "aberration", "abnegation", "zephyr"],
+            answer: 2,
+            explanation: "Preferring simple things over luxury and practicing self-denial is 'abnegation'."
+        },
+        {
+            passage: "Critics argued that the religious sect's demand for total physical ______ was psychologically unhealthy, as it completely demonized natural human comfort.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["abnegation", "zenith", "wrath", "aberration"],
+            answer: 0,
+            explanation: "Demanding total self-denial and elimination of comfort describes 'abnegation'."
+        }
+    ],
+    abort: [
+        {
+            passage: "When the diagnostic telemetry indicated an unexpected drop in fuel pressure, the flight commander chose to ______ the launch sequence just seconds before engine ignition.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["abate", "abort", "abide", "yoke"],
+            answer: 1,
+            explanation: "Stopping or giving up an operation before it finishes completely is to 'abort' it."
+        },
+        {
+            passage: "The espionage team was ordered to ______ the reconnaissance mission immediately when it became clear that their cipher keys had been compromised by counterintelligence.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["abort", "abet", "abduct", "abdicate"],
+            answer: 0,
+            explanation: "Terminating a mission before completion matches the definition of 'abort'."
+        },
+        {
+            passage: "Due to a sudden and severe blizzard on the upper slopes, the climbing expedition had to ______ its attempt to reach the mountain peak.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["abate", "abase", "abort", "abjure"],
+            answer: 2,
+            explanation: "Giving up a climb before reaching the destination is to 'abort' the attempt."
+        },
+        {
+            passage: "If the laboratory conditions fluctuate by even half a degree, the automated software will automatically ______ the chemical crystallization process to preserve the baseline samples.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["abort", "abide", "abdicate", "abet"],
+            answer: 0,
+            explanation: "Stopping a process mid-way or before completion is to 'abort' it."
+        },
+        {
+            passage: "The software development firm had to ______ the rollout of the new operating system when an un-patchable security loophole was discovered during beta testing.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["abate", "abort", "abase", "abjure"],
+            answer: 1,
+            explanation: "Stopping the release or deployment of a project before it finishes completely means to 'abort' it."
+        },
+        {
+            passage: "Faced with a complete lack of venture capital funding, the biotech startup was forced to ______ its clinical trials prematurely.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["abort", "abide", "abdicate", "abet"],
+            answer: 0,
+            explanation: "Stopping clinical trials before they are naturally concluded means to 'abort' them."
+        },
+        {
+            passage: "The tactical squad decided to ______ the raid on the compound when they noticed an unexpected gathering of civilians near the entry point.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["abduct", "abate", "abort", "abdicate"],
+            answer: 2,
+            explanation: "Calling off or stopping a planned operation mid-way means to 'abort' it."
+        },
+        {
+            passage: "Rather than risking a complete system meltdown during the power surge, the engineers chose to ______ the engine stress-test.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["abort", "abet", "abide", "abase"],
+            answer: 0,
+            explanation: "Stopping a test or procedure before its designated endpoint is to 'abort' it."
+        }
+    ],
+    wallow: [
+        {
+            passage: "Rather than developing a proactive strategy to rebuild the company, the ousted founder chose to ______ in self-pity, blaming everyone else for his professional downfall.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["wane", "wallow", "abate", "abjure"],
+            answer: 1,
+            explanation: "To remain or stay deeply immersed in an emotional state like sadness or self-pity is to 'wallow'."
+        },
+        {
+            passage: "Psychologists warn that while initial grief is entirely natural, choosing to permanently ______ in negative emotions can severely impede long-term mental recovery.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["wallow", "wane", "abort", "abide"],
+            answer: 0,
+            explanation: "Staying stuck or deeply immersed in a bad emotional situation or sadness is to 'wallow'."
+        },
+        {
+            passage: "The novel’s protagonist is a tragic figure who prefers to ______ in the misery of his failed relationship rather than engage with the outside world.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["wanton", "wane", "wallow", "abnegate"],
+            answer: 2,
+            explanation: "Staying in a state of self-pity and sadness represents 'wallowing'."
+        },
+        {
+            passage: "Following the cancellation of her exhibition, the artist spent several weeks refusing to create new art, choosing instead to ______ in her disappointment.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["wallow", "wane", "abort", "abate"],
+            answer: 0,
+            explanation: "Remaining deeply immersed in a bad situation or negative feeling matches the definition of 'wallow'."
+        },
+        {
+            passage: "The editorial criticized the political party for choosing to ______ in past grievances instead of offering a constructive vision for the country’s economic future.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["wane", "wallow", "wanton", "abjure"],
+            answer: 1,
+            explanation: "Staying stuck or indulging continuously in a negative situation or state of mind means to 'wallow'."
+        },
+        {
+            passage: "He knew he could not simply ______ in despair after losing the election; he had a responsibility to his constituents to continue fighting for policy reforms.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["wallow", "wane", "abort", "abide"],
+            answer: 0,
+            explanation: "Staying immersed in a state of sadness or hopelessness is described as 'wallowing'."
+        },
+        {
+            passage: "Biologists noted that during the peak heat of the summer, the herd of wild boars would mud-______ to protect their skin from thermal stress.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["wanton", "wallow", "wane", "abort"],
+            answer: 1,
+            explanation: "The literal definition of 'wallow' is to roll about or stay in mud or water, which perfectly fits this biological context."
+        },
+        {
+            passage: "It is easy for an unsuccessful writer to ______ in bitter resentment, but true literary mastery requires channeled persistence and revision.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["wallow", "wane", "wanton", "abjure"],
+            answer: 0,
+            explanation: "Remaining or indulging deeply in negative feelings like resentment means to 'wallow'."
+        }
+    ],
+    wane: [
+        {
+            passage: "As the alternative streaming networks gained market dominance, the traditional cable network saw its cultural influence and viewership numbers steadily ______.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["wallow", "wane", "abort", "abide"],
+            answer: 1,
+            explanation: "To decrease, become weaker, or shrink in size/influence is to 'wane'."
+        },
+        {
+            passage: "Climatologists noted that the intensity of the regional monsoon began to ______ as the high-pressure system moved across the valley.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["wallow", "wanton", "wane", "abduct"],
+            answer: 2,
+            explanation: "Weather patterns or intensities decreasing or becoming weaker matches the definition of 'wane'."
+        },
+        {
+            passage: "The aging monarch watched his absolute political power ______ as the democratic parliament systematically stripped him of his executive privileges.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["wane", "wallow", "wanton", "abjure"],
+            answer: 0,
+            explanation: "Power or authority decreasing or shrinking over time is described as 'waning'."
+        },
+        {
+            passage: "Public enthusiasm for the new infrastructure project began to ______ when the municipal government announced a three-year delay in construction.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["wallow", "wane", "abort", "abet"],
+            answer: 1,
+            explanation: "Enthusiasm or interest decreasing and becoming weaker is to 'wane'."
+        },
+        {
+            passage: "Astronomers tracked the moon as it transitioned into its ______ phase, displaying less illuminated surface area each night.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["wallow", "wanton", "waning", "aberrant"],
+            answer: 2,
+            explanation: "The literal astronomical use of 'wane' refers to the moon decreasing in its visible illumination."
+        },
+        {
+            passage: "The company's competitive advantage began to ______ when it failed to invest in artificial intelligence and modern data infrastructure.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["wane", "wallow", "abort", "abjure"],
+            answer: 0,
+            explanation: "An advantage decreasing or fading away means it is 'waning'."
+        },
+        {
+            passage: "Medical researchers observed that the drug's efficacy would start to ______ approximately six hours after the initial metabolic ingestion.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["wallow", "wane", "wanton", "abate"],
+            answer: 1,
+            explanation: "A drug's strength or effectiveness decreasing over time matches 'wane'."
+        },
+        {
+            passage: "Though the initial reviews of the tech device were highly enthusiastic, consumer interest quickly began to ______ due to its high retail price.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["wane", "wallow", "abort", "abide"],
+            answer: 0,
+            explanation: "Interest decreasing or growing smaller means it is beginning to 'wane'."
+        }
+    ],
+    wanton: [
+        {
+            passage: "The corporate entity faced heavy civil penalties after an internal investigation exposed their ______ disregard for environmental safety protocols on the factory floor.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["wistful", "winsome", "wanton", "wily"],
+            answer: 2,
+            explanation: "Action taken completely without control or careless about rules, morals, and safety is described as 'wanton disregard'."
+        },
+        {
+            passage: "The historian condemned the occupying army's ______ destruction of ancient cultural monuments, labeling it an unpardonable war crime.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["winsome", "wistful", "wanton", "wily"],
+            answer: 2,
+            explanation: "Careless, malicious, and uncontrolled destruction that ignores all rules or morals is 'wanton' destruction."
+        },
+        {
+            passage: "Critics argued that the film’s narrative structure relied too heavily on ______ violence, serving no artistic purpose other than cheap shock value.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["wanton", "winsome", "wistful", "wily"],
+            answer: 0,
+            explanation: "Violence that is uncontrolled, gratuitous, and careless regarding moral standards is described as 'wanton'."
+        },
+        {
+            passage: "The auditor discovered that the executive had engaged in a ______ expenditure of corporate funds, financing lavish personal vacations on the company’s line of credit.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["wistful", "winsome", "wily", "wanton"],
+            answer: 3,
+            explanation: "Uncontrolled, reckless, and morally careless spending of money is 'wanton' expenditure."
+        },
+        {
+            passage: "Her political opponents painted her as a leader of ______ ambition, willing to break any ethical rule or institutional norm to secure power.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["wanton", "winsome", "wistful", "wily"],
+            answer: 0,
+            explanation: "Ambition that runs completely out of control and is careless about rules or morality is 'wanton'."
+        },
+        {
+            passage: "The insurance agency refused to cover the damages, arguing that the vehicle’s destruction was the direct result of the driver’s ______ negligence.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["wistful", "wanton", "winsome", "wily"],
+            answer: 1,
+            explanation: "Negligence that is completely reckless and careless about safety rules is termed 'wanton negligence'."
+        },
+        {
+            passage: "The judge noted that the defendant’s ______ behavior during his probation demonstrated a complete contempt for the judicial system's rules.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["wanton", "winsome", "wistful", "wily"],
+            answer: 0,
+            explanation: "Behavior that is completely uncontrolled and careless about legal rules fits 'wanton'."
+        },
+        {
+            passage: "Environmental advocates filed a lawsuit against the logging operation, citing their ______ harvesting of protected timberlands outside the designated zone.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["winsome", "wistful", "wily", "wanton"],
+            answer: 3,
+            explanation: "Reckless harvesting that occurs completely without control or care for regulatory rules is 'wanton'."
+        }
+    ],
+    whimsical: [
+        {
+            passage: "The children’s boutique was celebrated for its ______ interior design, which featured playful pastel clouds hanging from the ceiling and unusual, fun house mirrors.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["wanton", "wistful", "whimsical", "wily"],
+            answer: 2,
+            explanation: "A design that is playfully imaginative, full of fun, and unusual is defined as 'whimsical'."
+        },
+        {
+            passage: "The avant-garde composer’s new symphony possesses a ______ quality, shifting unexpectedly from somber classical strings to playful kazoo melodies.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["whimsical", "wily", "wanton", "wistful"],
+            answer: 0,
+            explanation: "An unusual, playfully imaginative, and fun composition style is 'whimsical'."
+        },
+        {
+            passage: "Her illustrations were known for their ______ charm, depicting anthropomorphic forest animals carrying out elaborate, playful tea parties.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["wistful", "wanton", "wily", "whimsical"],
+            answer: 3,
+            explanation: "Art that is full of fun, unusual ideas, and playful imagination is 'whimsical'."
+        },
+        {
+            passage: "While his business partner preferred rigid, data-driven strategies, Arthur was known for his ______ approach to product development, often executing ideas on a playful hunch.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["whimsical", "wily", "wanton", "wistful"],
+            answer: 0,
+            explanation: "An unusual, fun, and playfully imaginative methodology matches 'whimsical'."
+        },
+        {
+            passage: "The novel’s protagonist is a ______ inventor who spends his days building unusual, highly imaginative contraptions that serve no practical economic purpose.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["wanton", "wily", "wistful", "whimsical"],
+            answer: 3,
+            explanation: "An individual who is playfully imaginative and focused on unusual, fun ideas is 'whimsical'."
+        },
+        {
+            passage: "The architectural structure was criticized by traditionalists for its ______ facades, which featured crooked window frames and colorful, unusual mosaics.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["whimsical", "wistful", "wily", "wanton"],
+            answer: 0,
+            explanation: "A playful, unusual, and imaginative design is appropriately called 'whimsical'."
+        },
+        {
+            passage: "The animated movie delighted global audiences by creating a ______ fantasy world where gravity operated in reverse and clouds were made of candy.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["wanton", "wistful", "whimsical", "wily"],
+            answer: 2,
+            explanation: "A world full of unusual, highly imaginative, and fun properties is a 'whimsical' environment."
+        },
+        {
+            passage: "Though the rest of his family pursued serious legal careers, Toby possessed a ______ spirit, choosing to spend his life traveling as a street magician.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["whimsical", "wily", "wanton", "wistful"],
+            answer: 0,
+            explanation: "A spirit that is playfully imaginative, unconventional, and full of fun fits 'whimsical'."
+        }
+    ],
+    abase: [
+        {
+            passage: "The authoritarian corporate executive used daily staff meetings to systematically ______ his management team, believing that public humiliation would force them to yield higher outputs.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["aggrandize", "abase", "abate", "abdicate"],
+            answer: 1,
+            explanation: "Humiliating or degrading a person or group corresponds precisely to the definition of 'abase'."
+        },
+        {
+            passage: "He steadfastly refused to ______ his artistic standards by altering his paintings for mass market retail appeal, choosing instead to remain in financial obscurity.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["abase", "abate", "abet", "yoke"],
+            answer: 0,
+            explanation: "Lowering or degrading one's standards is to 'abase' them."
+        },
+        {
+            passage: "The defense lawyer argued that the solitary housing policy was not a security measure, but a tool meant to ______ the basic human dignity of the prisoners.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["vindicate", "foster", "abase", "abdicate"],
+            answer: 2,
+            explanation: "A punitive design that degrades or humiliates basic dignity matches 'abase'."
+        },
+        {
+            passage: "To argue that receiving structural criticism will inevitably ______ a writer’s literary standing is to misunderstand the collaborative nature of editorial work.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["abase", "abdicate", "corroborate", "alleviate"],
+            answer: 0,
+            explanation: "The passage counters the idea that criticism lowers or degrades a writer's professional standing, making 'abase' the correct choice."
+        }
+    ],
+    abate: [
+        {
+            passage: "The trade committee introduced strategic tariffs hoping that the rapid influx of foreign technological products would finally ______ before domestic manufacturers were bankrupted.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["escalate", "abase", "abate", "abdicate"],
+            answer: 2,
+            explanation: "Hoping an intensity or influx will lessen, reduce, or drop off means hoping it will 'abate'."
+        },
+        {
+            passage: "The maritime research vessel had to hold its current position in the bay, waiting for the heavy ocean swells to ______ before attempting to dock at the rocky pier.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["abate", "abase", "intensify", "yoke"],
+            answer: 0,
+            explanation: "Ocean swells reducing in size or letting up describes 'abating'."
+        },
+        {
+            passage: "Medical data indicated that the patient's severe migratory joint pain did not begin to ______ until the third day of the antiviral regimen.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["proliferate", "abate", "abase", "abet"],
+            answer: 1,
+            explanation: "Pain or physical symptoms reducing or lessening matches 'abate'."
+        },
+        {
+            passage: "Municipal planners implemented modern acoustic arrays along the urban highway corridor to help ______ the sound pollution hitting nearby neighborhoods.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["abet", "augment", "abase", "abate"],
+            answer: 3,
+            explanation: "Reducing or lessening the volume or impact of pollution is to 'abate' it."
+        }
+    ],
+    abdicate: [
+        {
+            passage: "Following an internal investigation into systemic insider trading, the chief investment officer chose to ______ his leadership position to shield the parent company from liability.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["abase", "abdicate", "shoulder", "abet"],
+            answer: 1,
+            explanation: "Giving up an official position of leadership fits the definition of 'abdicate'."
+        },
+        {
+            passage: "By systematically ignoring the persistent chemical leaks reported at the containment facility, the executive board was accused of trying to ______ its legal liabilities.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["abdicate", "abase", "abet", "maintain"],
+            answer: 0,
+            explanation: "Casting off, surrendering, or failing to fulfill a fundamental duty/responsibility is to 'abdicate' it."
+        },
+        {
+            passage: "The historical analysis focuses on the final chaotic weeks of the Romanov dynasty, culminating in the Emperor’s forced choice to ______ the imperial throne.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["abate", "abase", "abdicate", "consolidate"],
+            answer: 2,
+            explanation: "Renouncing a sovereign position or throne is the classic use of 'abdicate'."
+        },
+        {
+            passage: "A truly independent judiciary must never ______ its constitutional mandate to serve as an unyielding check on legislative overreach.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["abase", "abdicate", "abet", "usurp"],
+            answer: 1,
+            explanation: "Giving up or surrendering a mandated power or responsibility means to 'abdicate' it."
+        }
+    ],
+    zephyr: [
+        {
+            passage: "The dense, suffocating humidity of the valley was occasionally cleared by a light ______ that traveled softly from the coastal inlet.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["zenith", "zephyr", "gale", "wrath"],
+            answer: 1,
+            explanation: "A gentle, soft, light breeze is a 'zephyr'."
+        },
+        {
+            passage: "The fragile silk curtains moved inward with an elegant, weightless grace, disturbed by nothing more than a passing afternoon ______.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["zephyr", "zenith", "aberration", "torrent"],
+            answer: 0,
+            explanation: "A light, soft current of wind capable of shifting delicate fabrics is a 'zephyr'."
+        },
+        {
+            passage: "While the mountain pass was exposed to violent blizzards, the isolated orchard at the base was touched only by a soothing, ambient ______.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["zenith", "vortex", "zephyr", "abatement"],
+            answer: 2,
+            explanation: "A soothing, gentle, and soft wind is a 'zephyr'."
+        },
+        {
+            passage: "On a day when the air was entirely motionless, the runners found that even the briefest ______ provided an extraordinary sense of physiological relief.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["zephyr", "zenith", "aberration", "wrath"],
+            answer: 0,
+            explanation: "A faint, light breeze that disrupts stagnant heat is a 'zephyr'."
+        }
+    ],
+    zenith: [
+        {
+            passage: "Many literary historians assert that the release of her third epic poem represented the absolute ______ of her creative output, followed by years of standard prose.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["nadir", "zephyr", "zenith", "foundation"],
+            answer: 2,
+            explanation: "The highest or culminating point of a career or creative period is its 'zenith'."
+        },
+        {
+            passage: "The deep-space array was calibrated to capture high-frequency telemetry at the exact moment the constellation crossed its celestial ______.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["periphery", "zenith", "zephyr", "base"],
+            answer: 1,
+            explanation: "In astronomy, the highest point directly overhead is the 'zenith'."
+        },
+        {
+            passage: "At the definitive ______ of his political career, he held an unyielding legislative majority and enjoyed global approval ratings.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["zenith", "zephyr", "nadir", "aberration"],
+            answer: 0,
+            explanation: "The peak high point of a career or level of influence is the 'zenith'."
+        },
+        {
+            passage: "Winning the international architecture prize served as the structural ______ of an illustrious forty-year career dedicated to municipal design.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["zephyr", "aberration", "nadir", "zenith"],
+            answer: 3,
+            explanation: "The ultimate culminating high point of professional achievement is its 'zenith'."
+        }
+    ],
+    zealous: [
+        {
+            passage: "The district attorney’s ______ pursuit of minor regulatory compliance infractions was heavily criticized by corporate entities who preferred informal warnings.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["apathetic", "zealous", "wizened", "abated"],
+            answer: 1,
+            explanation: "Fervent, passionate, and exceptionally eager pursuit of an objective is described as 'zealous'."
+        },
+        {
+            passage: "As a ______ advocate for algorithmic transparency, she spent her weekends auditing open-source codebases to flag embedded biases.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["zealous", "wizened", "indifferent", "aberrant"],
+            answer: 0,
+            explanation: "A passionate, active, and eager supporter of a cause is 'zealous'."
+        },
+        {
+            passage: "The rapid expansion of the grassroots preservation movement was driven by a tight-knit faction of ______ volunteers who campaigned doors late into winter.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["lethargic", "aberrant", "zealous", "wizened"],
+            answer: 2,
+            explanation: "Fervent, eager, and deeply enthusiastic workers are 'zealous'."
+        },
+        {
+            passage: "Though her intentions to reform the department were widely praised, her ______ enforcement of forgotten administrative rules quickly alienated veteran colleagues.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["zealous", "wizened", "casual", "aberrant"],
+            answer: 0,
+            explanation: "An overly eager, intense, and fervent execution of protocols fits 'zealous'."
+        }
+    ],
+    abduct: [
+        {
+            passage: "The global security council was mobilized following an audacious plot by an insurgent cell to ______ three administrative officials outside the embassy gates.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["abet", "abdicate", "abduct", "yoke"],
+            answer: 2,
+            explanation: "Taking individuals away by force or kidnapping them matches the verb 'abduct'."
+        },
+        {
+            passage: "The tactical division managed to disrupt a high-stakes maritime conspiracy by rogue syndicates to ______ an industrial cargo vessel for ransom.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["abdicate", "abet", "abduct", "mitigate"],
+            answer: 2,
+            explanation: "Seizing or capturing human assets by force means to 'abduct' them."
+        },
+        {
+            passage: "The revised penal code outlines severe mandatory sentences for any entity that attempts to unlawfully restrain and ______ foreign diplomats across domestic lines.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["abduct", "abdicate", "abet", "nurture"],
+            answer: 0,
+            explanation: "Kidnapping or taking personnel by force is defined as an attempt to 'abduct'."
+        },
+        {
+            passage: "The thriller centers on a specialized counter-espionage agent trying to extract a high-profile defector before foreign operatives can covertly ______ him.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["abet", "abdicate", "abduct", "flatter"],
+            answer: 2,
+            explanation: "Seizing someone or taking them away by force fits the meaning of 'abduct'."
+        }
+    ],
+    aberration: [
+        {
+            passage: "Given his pristine twenty-year record of absolute financial transparency, the minor accounting mistake uncovered during the audit was treated as an isolated ______.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["norm", "aberration", "zenith", "zephyr"],
+            answer: 1,
+            explanation: "An event or metric that deviates sharply from an established norm or clean record is an 'aberration'."
+        },
+        {
+            passage: "The advanced laboratory lens suffered from a minor chromatic ______, which caused light waves to scatter and distorted the peripheral imagery of the telescope.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["standard", "clarity", "aberration", "zenith"],
+            answer: 2,
+            explanation: "In science and optics, an structural distortion or departure from normal focus/refraction is an 'aberration'."
+        },
+        {
+            passage: "The sudden, freezing temperatures recorded in the valley during mid-July were analyzed by regional meteorologists as a striking localized ______.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["aberration", "zenith", "zephyr", "conformity"],
+            answer: 0,
+            explanation: "A weather event that deviates completely from the regional seasonal average is an 'aberration'."
+        },
+        {
+            passage: "For an analytical statistician celebrated for his hyper-precise projections, producing a report filled with basic mathematical calculations was an inexplicable ______.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["uniformity", "aberration", "zenith", "zephyr"],
+            answer: 1,
+            explanation: "An unusual error that departs drastically from a standard of high precision is an 'aberration'."
+        }
+    ],
+    abet: [
+        {
+            passage: "The senior technical advisor faced federal prosecution when investigators proved he had deliberately modified software code to ______ the offshore data theft.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["abduct", "abet", "thwart", "abate"],
+            answer: 1,
+            explanation: "Aiding, assisting, or encouraging an illegal venture means to 'abet' it. 'Thwart' is the antonym."
+        },
+        {
+            passage: "Legal experts emphasize that providing financial resources or hiding spots to an active fugitive serves to ______ their flight from justice, which is a felony.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["abet", "abduct", "impede", "abate"],
+            answer: 0,
+            explanation: "Assisting or encouraging someone in an illegal act or escape is to 'abet' them."
+        },
+        {
+            passage: "The loose administrative oversight at the clearinghouse did nothing but ______ the rogue brokers during their unauthorized asset transfers.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["obstruct", "abet", "abate", "abduct"],
+            answer: 1,
+            explanation: "Weak regulations assist or facilitate fraudulent behavior, meaning they 'abet' it."
+        },
+        {
+            passage: "The steering committee refused to ______ his questionable academic practices, immediately stripping him of his tenure upon discovering the manipulated data charts.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["abet", "abate", "abduct", "counteract"],
+            answer: 0,
+            explanation: "Refusing to assist, tolerate, or encourage improper scientific actions means they refused to 'abet' them."
+        }
+    ],
+    wizened: [
+        {
+            passage: "The landscape artist spent hours sketching the ancient desert shrubbery, deeply fascinated by its furrowed bark and completely ______ branches.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["zealous", "wizened", "robust", "aberrant"],
+            answer: 1,
+            explanation: "Branches that are old, wrinkled, dry, and shrunken from age and lack of moisture are 'wizened'."
+        },
+        {
+            passage: "Decades of manual agricultural labor under the blistering sun had left the older farmer's hands remarkably tough and ______.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["wizened", "vibrant", "zealous", "abated"],
+            answer: 0,
+            explanation: "Skin that is dry, shrunken, and heavily wrinkled from exposure and age is described as 'wizened'."
+        },
+        {
+            passage: "The archival team extracted the ______ fragments of leather parchment from the tomb, using chemical sprays to prevent the wrinkled material from flaking.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["plump", "wizened", "zealous", "aberrant"],
+            answer: 1,
+            explanation: "Material that is old, dry, shrivelled, and wrinkled matches 'wizened'."
+        },
+        {
+            passage: "Left inside the un-humidified storage container throughout the long winter freeze, the roots became completely dry, shriveled, and ______.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["smooth", "zealous", "wizened", "aberrant"],
+            answer: 2,
+            explanation: "Organic specimens that become shrunken, dry, and wrinkled over time are 'wizened'."
+        }
+    ],
+    wrath: [
+        {
+            passage: "The sudden and devastating seismic event was interpreted by the ancient tribes as a terrifying manifestation of ancestral ______.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["zephyr", "wrath", "zenith", "benevolence"],
+            answer: 1,
+            explanation: "Vengeful anger or intense punishment from gods or natural forces is defined as 'wrath'."
+        },
+        {
+            passage: "Having intentionally leaked the proprietary source code, the developer faced the unsparing corporate ______ of the firm's aggressive legal department.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["wrath", "zephyr", "zenith", "leniency"],
+            answer: 0,
+            explanation: "Fierce anger or retributive punishment from an offended entity is 'wrath'."
+        },
+        {
+            passage: "The controversial caricature provoked the absolute ______ of the governor, who instantly initiated an internal probe to discover the publisher's sources.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["wrath", "zephyr", "zenith", "compliance"],
+            answer: 0,
+            explanation: "Fierce anger or vengeful outrage corresponds directly to 'wrath'."
+        },
+        {
+            passage: "In classical tragedies, the central plot trajectory is typically driven by the destructive ______ of an offended entity demanding absolute retribution.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["zephyr", "zenith", "wrath", "solace"],
+            answer: 2,
+            explanation: "Vengeful anger or structural punishment exacted by gods or rulers in literature is 'wrath'."
+        }
+    ],
+    yoke: [
+        {
+            passage: "The continental monetary union was engineered to ______ the financial architectures of the four neighboring republics into a singular, unified economic ecosystem.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["sever", "yoke", "abate", "abdicate"],
+            answer: 1,
+            explanation: "To join, link, or link distinct systems together structurally means to 'yoke' them."
+        },
+        {
+            passage: "In historic agrarian regions, cultivating fields required farmers to ______ pairs of draft animals together to clear the heavy clay soils.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["yoke", "abduct", "isolate", "abase"],
+            answer: 0,
+            explanation: "The literal definition of the verb 'yoke' is to join or link draft animals together for agricultural work."
+        },
+        {
+            passage: "The experimental designer sought to ______ classical architecture styles with modern industrial elements to produce an unsettling aesthetic clash.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["disconnect", "yoke", "abate", "abdicate"],
+            answer: 1,
+            explanation: "Conceptually linking or structurally joining two distinct styles together means to 'yoke' them."
+        },
+        {
+            passage: "The expanding administrative core sought to ______ the surrounding independent territories to its tax framework, eliminating their regional legal systems.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["liberate", "yoke", "abate", "abduct"],
+            answer: 1,
+            explanation: "To link, tie, or attach subordinate groups under a single central structure is to 'yoke' them."
+        }
+    ],
+    abhor: [
+        {
+            passage: "The literary curator, a champion of classical metrics, came to deeply ______ the unstructured format of modern performance poetry, viewing it as an assault on discipline.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["venerate", "abhor", "abate", "abide"],
+            answer: 1,
+            explanation: "Viewing a format as an 'assault on discipline' indicates a powerful hatred or intense rejection, which matches 'abhor'."
+        },
+        {
+            passage: "While the activist openly claimed to ______ the materialist nature of modern society, her frequent high-end consumer purchases contradicted her public statements.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["abet", "abase", "abhor", "cultivate"],
+            answer: 2,
+            explanation: "The contradiction is between public expressions of deep hatred/rejection ('abhor') and private actions."
+        },
+        {
+            passage: "Ethical philosophers who endorse absolute non-violence naturally ______ any military policy that treats civilian populations as an acceptable asset for leverage.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["abhor", "abide", "yoke", "abdicate"],
+            answer: 0,
+            explanation: "Advocates of absolute non-violence would intensely hate or find detestable such a policy, meaning they 'abhor' it."
+        },
+        {
+            passage: "It remains a striking paradox that while he professed to ______ the trivial nature of algorithmic tabloids, he spent hours auditing their daily headlines.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["foster", "abate", "abhor", "abide"],
+            answer: 2,
+            explanation: "The paradox centers on a person intensely hating or despising a medium ('abhor') yet consuming it constantly."
+        }
+    ],
+    abide: [
+        {
+            passage: "The presiding judge made it unequivocally clear that the court would not ______ any further administrative delays from the defense team, demanding immediate trial proceedings.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["abhor", "abide", "abate", "abase"],
+            answer: 1,
+            explanation: "In this negative construction, 'not abide' means 'will not tolerate or endure.' This fits the judge's warning."
+        },
+        {
+            passage: "Traditional medical associations demand that every licensed practitioner ______ by a foundational oath that prioritizes patient safety over financial returns.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["violate", "abdicate", "abide", "augment"],
+            answer: 2,
+            explanation: "The idiom 'abide by' means to conform to, obey, or follow rules/codes."
+        },
+        {
+            passage: "Corporate firms that adamantly refuse to ______ by the updated digital privacy regulations face heavy financial penalties and structural audits.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["abate", "abide", "abase", "abet"],
+            answer: 1,
+            explanation: "Complying with or following legal regulations is expressed using 'abide by'."
+        },
+        {
+            passage: "The committee announced that it would not ______ any variations from the designated research budget, requiring absolute adherence to the initial grant constraints.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["abhor", "abide", "abet", "abate"],
+            answer: 1,
+            explanation: "The committee will not tolerate or allow variations. 'Abide' matches the definition of tolerating or putting up with something."
+        }
+    ],
+    abject: [
+        {
+            passage: "The international report documented the ______ conditions within the drought-stricken province, where a complete lack of distribution networks left millions in deep hopelessness.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["winsome", "abject", "wily", "zealous"],
+            answer: 1,
+            explanation: "Conditions characterized by extreme misery, poverty, and absolute hopelessness are defined as 'abject'."
+        },
+        {
+            passage: "Following the public disclosure of his systematic accounting fabrications, the broker issued an ______ apology to the investors, stripping away any pretense of dignity.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["abject", "winsome", "wistful", "wily"],
+            answer: 0,
+            explanation: "An 'abject apology' is a standard phrase describing an utterance that is completely humble, low, and without remaining pride."
+        },
+        {
+            passage: "The humanitarian mission emphasized that despite industrial expansion nearby, the localized community remained trapped in ______ poverty.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["zealous", "wistful", "abject", "winsome"],
+            answer: 2,
+            explanation: "Poverty that is thoroughly miserable, hopeless, and extreme is 'abject poverty'."
+        },
+        {
+            passage: "Cut off from communication networks and surrounded by opposing divisions, the garrison fell into a state of ______ despair, realizing no reinforcements would arrive.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["abject", "wily", "winsome", "zealous"],
+            answer: 0,
+            explanation: "Despair that is completely miserable, low, and devoid of hope is 'abject' despair."
+        }
+    ],
+    wistful: [
+        {
+            passage: "As she reviewed the old journals detailing her early student years in Vienna, a ______ expression crossed her face, highlighting a quiet longing for a past that could never return.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["wily", "winsome", "wistful", "abject"],
+            answer: 2,
+            explanation: "An expression that is sad and reflects longing for something missed or lost to the past is 'wistful'."
+        },
+        {
+            passage: "The aging musician’s final record is deeply ______, filled with melodies that mourn the passage of time and reflect softly on historical collaborations.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["wistful", "wily", "zealous", "abject"],
+            answer: 0,
+            explanation: "Music or writing that sadly reflects on and misses the past is described as 'wistful'."
+        },
+        {
+            passage: "He cast a ______ glance at the receding lights of the port city, fully aware that his diplomatic assignment would keep him away from home for years.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["winsome", "wily", "wistful", "zealous"],
+            answer: 2,
+            explanation: "A glance full of sad longing for a place one already misses matches 'wistful'."
+        },
+        {
+            passage: "The film’s final sequence possessed a quiet, ______ quality, leaving audiences to contemplate the alternate paths the characters might have taken had they avoided the conflict.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["wistful", "wily", "abject", "zealous"],
+            answer: 0,
+            explanation: "A bittersweet, sad reflection about things missed or alternate pasts fits 'wistful'."
+        }
+    ],
+    winsome: [
+        {
+            passage: "The candidate's ______ behavior and unpretentious, innocent mannerisms completely charmed the cynical press corps, shifting the focus away from his lack of political tenure.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["wily", "winsome", "wistful", "abject"],
+            answer: 1,
+            explanation: "Charm that is sweet, innocent, open, and appealing is defined as 'winsome'."
+        },
+        {
+            passage: "Biographical logs document the young monarch as a ______ public figure whose natural, innocent charisma rapidly unified the fractured legislative houses.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["winsome", "wily", "wistful", "abject"],
+            answer: 0,
+            explanation: "An innocent, sweet, and authentic charm that wins over people is described as 'winsome'."
+        },
+        {
+            passage: "The theatrical production relies heavily on the main actress's ______ personality, ensuring the character remains immensely likeable despite her frequent script errors.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["wily", "winsome", "wistful", "zealous"],
+            answer: 1,
+            explanation: "A sweet, charming, and innocent presence that engenders liking is a 'winsome' trait."
+        },
+        {
+            passage: "Beneath his remarkably ______ and unassuming exterior lay a sharp, highly tactical mind that his legal adversaries consistently underestimated to their own disadvantage.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["wily", "wistful", "winsome", "abject"],
+            answer: 2,
+            explanation: "The sentence contrasts a sweet, innocent, charming appearance ('winsome') with a sharp, calculating inner mind."
+        }
+    ],
+    wily: [
+        {
+            passage: "The ______ defense consultant identified a minor structural ambiguity in the wiretap authorization files and exploited it to have the critical audio logs suppressed.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["winsome", "wistful", "wily", "abject"],
+            answer: 2,
+            explanation: "A professional who is exceptionally clever in a tricky, sneaky, or deceptive way is described as 'wily'."
+        },
+        {
+            passage: "In classical myths, the character of the trickster is invariably drawn as a ______ operative who deploys calculated fabrications to manipulate larger adversaries.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["wistful", "wily", "winsome", "zealous"],
+            answer: 1,
+            explanation: "A character defined by tricky, sneaky, or deceptive cleverness is 'wily'."
+        },
+        {
+            passage: "The cyber intelligence team realized they were monitoring a highly ______ adversary when they found the malicious code had been designed to generate random false footprints.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["wily", "winsome", "wistful", "abject"],
+            answer: 0,
+            explanation: "An adversary who uses tricky, deceptive, or sneaky maneuvers is 'wily'."
+        },
+        {
+            passage: "While his rivals relied entirely on traditional media advertising budgets, the ______ strategist used sneaky viral campaigns and hidden digital loops to capture market segments.",
+            q: "Which choice completes the text with the most logical and precise word?",
+            options: ["winsome", "wistful", "zealous", "wily"],
+            answer: 3,
+            explanation: "Relying on tricky, deceptive, or sneaky cleverness to bypass traditional obstacles is the hallmark of a 'wily' individual."
+        }
+    ]
+};
+// --- RUNTIME LIVE CYCLE ARRAYS ---
+let questions = []; 
+let current = 0;
+let userAnswers = [];
+let bookmarkedQuestions = [];
+let struckOptions = [];
+let totalTime = 900; 
+let countdownInterval;
+
+function initLiveClockClockPanel() {
+    function updateClockTime() {
+        const timestampElement = document.getElementById("liveHeaderTimestamp");
+        const now = new Date();
+        const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        
+        const dateOptions = { year: 'numeric', month: 'short', day: 'numeric' };
+        const formattedDate = now.toLocaleDateString('en-US', dateOptions);
+        
+        let hours = now.getHours();
+        let minutes = now.getMinutes();
+        let seconds = now.getSeconds();
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        
+        hours = hours % 12;
+        hours = hours ? hours : 12;
+        minutes = minutes < 10 ? '0' + minutes : minutes;
+        seconds = seconds < 10 ? '0' + seconds : seconds;
+        
+        timestampElement.innerHTML = `<i class="bi bi-calendar3 me-2"></i> ${days[now.getDay()]}, ${formattedDate} &bull; ${hours}:${minutes}:${seconds} ${ampm}`;
+    }
+    updateClockTime();
+    setInterval(updateClockTime, 1000);
+}
+
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
+
+function generateDynamicTestSession() {
+    let completePool = [];
+    for (const category in masterQuestionBank) {
+        masterQuestionBank[category].forEach(item => completePool.push({...item}));
+    }
+    // Shuffle all gathered unique questions randomly
+    shuffleArray(completePool);
+    
+    // Select exactly 18 unique questions from the pool of 60 items
+    return completePool.slice(0, 18);
+}
+
+function updateInstructionParameters() {
+    let uniqueCount = 0;
+    for (const category in masterQuestionBank) {
+        uniqueCount += masterQuestionBank[category].length;
+    }
+    const displayCount = Math.min(18, uniqueCount);
+    document.getElementById("paramVolumeCount").innerText = displayCount;
+}
+
+function startTest() {
+    questions = generateDynamicTestSession();
+    current = 0;
+    userAnswers = Array(questions.length).fill(null);
+    bookmarkedQuestions = Array(questions.length).fill(false);
+    struckOptions = Array(questions.length).fill(null).map(() => Array(4).fill(false));
+    totalTime = 900;
+
+    // Apply active exam modifier class to body to configure independent layout panels
+    document.body.classList.add("quiz-active");
+
+    document.getElementById("instructionsCard").classList.add("d-none");
+    document.getElementById("quiz").classList.remove("d-none");
+    document.getElementById("quizFooter").classList.remove("d-none");
+    document.getElementById("topbarStats").classList.remove("d-none");
+    document.getElementById("toolFlag").classList.remove("d-none");
+
+    clearInterval(countdownInterval);
+    initTimer();
+    loadQuestion();
+}
+
+function initTimer() {
+    const timerElement = document.getElementById("timer");
+    countdownInterval = setInterval(() => {
+        let minutes = Math.floor(totalTime / 60);
+        let seconds = totalTime % 60;
+        timerElement.innerText = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        if (totalTime <= 0) {
+            clearInterval(countdownInterval);
+            finishQuiz();
+        }
+        totalTime--;
+    }, 1000);
+}
+
+function loadQuestion() {
+    let q = questions[current];
+    document.getElementById("footerProgress").innerText = `Question ${current + 1} of ${questions.length}`;
+    
+    const workspaceContainer = document.getElementById("workspaceContainer");
+    const flagBtn = document.getElementById("toolFlag");
+    
+    if(bookmarkedQuestions[current]) {
+        flagBtn.innerHTML = `<i class="bi bi-bookmark-fill me-1"></i> Bookmarked`;
+        flagBtn.className = "bb-tool-btn flagged-active";
+        workspaceContainer.classList.add("is-bookmarked");
+    } else {
+        flagBtn.innerHTML = `<i class="bi bi-bookmark me-1"></i> Bookmark`;
+        flagBtn.className = "bb-tool-btn";
+        workspaceContainer.classList.remove("is-bookmarked");
+    }
+
+    let html = `
+        <div class="left-panel p-4 p-md-5">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="badge bg-dark text-white px-3 py-1.5 fw-bold small tracking-wide">PASSAGE FRAME</span>
+                <span class="bookmark-status-banner"><i class="bi bi-bookmark-fill me-1"></i> Flagged Item</span>
+            </div>
+            <div class="sat-passage">${q.passage}</div>
+        </div>
+        
+        <div class="right-panel p-4 p-md-5 bg-white">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="badge bg-light text-dark border border-2 border-dark px-3 py-1.5 fw-bold small tracking-wide">QUESTION PARAMETERS</span>
+                <div style="cursor: pointer;" onclick="triggerFlag()">
+                    <i class="bi ${bookmarkedQuestions[current] ? 'bi-bookmark-fill text-dark' : 'bi-bookmark text-muted'}" style="font-size: 1.5rem;"></i>
+                </div>
+            </div>
+            <div class="question-text mb-4">${current + 1}. ${q.q}</div>
+            <div class="d-flex flex-column gap-1">`;
+
+    q.options.forEach((opt, i) => {
+        let isSelected = (userAnswers[current] === i) ? 'selected' : '';
+        let isStruck = struckOptions[current][i] ? 'struck' : '';
+        let strikeActive = struckOptions[current][i] ? 'active' : '';
+        let letter = String.fromCharCode(65 + i);
+
+        html += `
+            <div class="option-wrapper">
+                <div class="bb-option-card ${isSelected} ${isStruck}" onclick="selectOption(${i})">
+                    <span class="letter-badge">${letter}</span>
+                    <span class="option-text-span">${opt}</span>
+                </div>
+                <button class="bb-strike-btn ${strikeActive}" onclick="toggleStrike(${i}, event)" title="Strike Option">
+                    <i class="bi bi-type-strikethrough"></i>
+                </button>
+            </div>`;
+    });
+
+    html += `</div></div>`;
+    document.getElementById("quiz").innerHTML = html;
+    
+    document.getElementById("prevBtn").disabled = (current === 0);
+    document.getElementById("nextBtn").disabled = (current === questions.length - 1);
+    
+    // Smooth reset panel scrolls to top upon dynamic load updates
+    const lp = document.querySelector('.left-panel');
+    const rp = document.querySelector('.right-panel');
+    if (lp) lp.scrollTop = 0;
+    if (rp) rp.scrollTop = 0;
+
+    buildNavGridMap();
+}
+
+function triggerFlag() {
+    bookmarkedQuestions[current] = !bookmarkedQuestions[current];
+    loadQuestion();
+}
+
+function toggleStrike(optionIndex, event) {
+    event.stopPropagation();
+    struckOptions[current][optionIndex] = !struckOptions[current][optionIndex];
+    if (struckOptions[current][optionIndex] && userAnswers[current] === optionIndex) {
+        userAnswers[current] = null;
+    }
+    loadQuestion();
+}
+
+function selectOption(i) {
+    if (struckOptions[current][i]) return;
+    userAnswers[current] = i;
+    loadQuestion();
+}
+
+function buildNavGridMap() {
+    const container = document.getElementById("navGridMapContainer");
+    container.innerHTML = "";
+    
+    questions.forEach((_, idx) => {
+        let statusClass = "";
+        if (current === idx) statusClass += " active";
+        if (userAnswers[idx] !== null) statusClass += " answered";
+        
+        let bookmarkIcon = bookmarkedQuestions[idx] ? `<i class="bi bi-bookmark-fill flag-indicator"></i>` : "";
+        
+        container.innerHTML += `
+            <div class="map-grid-item ${statusClass}" onclick="jumpToQuestion(${idx})">
+                ${idx + 1}
+                ${bookmarkIcon}
+            </div>`;
+    });
+}
+
+function jumpToQuestion(index) {
+    current = index;
+    loadQuestion();
+}
+
+function nextQ() {
+    if (current < questions.length - 1) {
+        current++;
+        loadQuestion();
+    }
+}
+
+function prevQ() {
+    if (current > 0) {
+        current--;
+        loadQuestion();
+    }
+}
+
+function finishQuiz() {
+    clearInterval(countdownInterval);
+    document.body.classList.remove("quiz-active"); // Restores general document flow for results review
+
+    document.getElementById("topbarStats").classList.add("d-none");
+    document.getElementById("toolFlag").classList.add("d-none");
+    document.getElementById("quizFooter").classList.add("d-none");
+    
+    const workspace = document.getElementById("workspaceContainer");
+    workspace.classList.remove("is-bookmarked");
+
+    let scoreCount = 0;
+    let reviewHTML = `
+        <div class="w-100 p-3 p-md-5">
+            <div class="row justify-content-center mx-0">
+                <div class="col-12 col-xl-9">
+                    <div class="card border border-2 border-dark shadow-sm p-4 bg-white rounded-3 mb-4">
+                        <h4 class="fw-bold text-center mb-3">SAT® Assessment Performance Evaluation</h4>
+                        <div class="row g-3 text-center" id="scoreMetricRow"></div>
+                    </div>`;
+
+    questions.forEach((q, i) => {
+        let isCorrect = (userAnswers[i] === q.answer);
+        if(isCorrect) scoreCount++;
+        
+        let statusBadge = isCorrect ? 
+            `<span class="badge bg-dark text-white border border-2 border-dark px-3 py-1.5 fw-bold"><i class="bi bi-check-circle-fill me-1"></i> CORRECT</span>` : 
+            `<span class="badge bg-white text-dark border border-2 border-dark px-3 py-1.5 fw-bold"><i class="bi bi-x-circle-fill me-1"></i> INCORRECT</span>`;
+
+        reviewHTML += `
+            <div class="card border border-2 border-dark shadow-sm rounded-3 p-4 bg-white mb-4">
+                <div class="d-flex justify-content-between align-items-center border-bottom border-2 pb-2 mb-3">
+                    <h6 class="fw-bold m-0 text-dark">Question Sequence Matrix ${i + 1}</h6>
+                    ${statusBadge}
+                </div>
+                <div class="sat-passage p-3 bg-light rounded text-muted mb-3 border-start border-4 border-dark fs-6">
+                    ${q.passage}
+                </div>
+                <p class="fw-bold text-dark fs-5 mb-2">${q.q}</p>
+                <div class="fs-6 mb-3 p-2.5 border rounded">
+                    <div class="text-secondary"><strong>Selected Student Profile Asset:</strong> <span class="fw-bold text-dark">${userAnswers[i] !== null ? q.options[userAnswers[i]] : 'None Registered'}</span></div>
+                    <div class="text-dark mt-1"><strong>Calibrated Answer Target Key:</strong> <span class="fw-bold">${q.options[q.answer]}</span></div>
+                </div>
+                <div class="p-3 bg-light rounded text-secondary border small fs-6">
+                    <strong>Analytical Context Rationale:</strong> ${q.explanation}
+                </div>
+            </div>`;
+    });
+
+    reviewHTML += `
+                <div class="text-center pt-2">
+                    <a href="index.html" class="btn btn-dark btn-lg px-5 py-2.5 rounded fs-6 fw-bold"><i class="bi bi-house-door me-2"></i> Return to Portal Track Dashboard</a>
+                </div>
+            </div></div></div>`;
+
+    document.getElementById("quiz").innerHTML = reviewHTML;
+    document.getElementById("quiz").className = "w-100 d-block";
+    
+    document.getElementById("scoreMetricRow").innerHTML = `
+        <div class="col-6">
+            <div class="p-3 bg-dark text-white rounded-3">
+                <span class="text-light d-block small fw-bold mb-1 uppercase tracking-wide">RAW OUTPUT</span>
+                <h3 class="fw-bold m-0">${scoreCount} / ${questions.length}</h3>
+            </div>
+        </div>
+        <div class="col-6">
+            <div class="p-3 bg-light border border-2 border-dark text-dark rounded-3">
+                <span class="text-muted d-block small fw-bold mb-1 uppercase tracking-wide">ACCURACY INDEX</span>
+                <h3 class="fw-bold m-0">${Math.round((scoreCount / questions.length) * 100)}%</h3>
+            </div>
+        </div>`;
+}
+
+window.onload = function() {
+    initLiveClockClockPanel();
+    updateInstructionParameters();
+}
+</script>
+</body>
+</html>
